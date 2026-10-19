@@ -16,6 +16,9 @@ export default function AppLayout({ header, children }) {
                         {auth.user?.is_super_admin && (
                             <Link href={route('admin.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Admin</Link>
                         )}
+                        {auth.user?.is_vendor && (
+                            <Link href={route('vendor.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Seller</Link>
+                        )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
                         <span>{auth.user?.name}</span>
