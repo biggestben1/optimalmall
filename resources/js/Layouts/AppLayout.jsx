@@ -2,7 +2,7 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import ApplicationLogo from '../Components/ApplicationLogo';
 
 export default function AppLayout({ header, children }) {
-    const { auth } = usePage().props;
+    const { auth, flash } = usePage().props;
     const { post } = useForm({});
 
     return (
@@ -17,7 +17,11 @@ export default function AppLayout({ header, children }) {
                             <Link href={route('admin.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Admin</Link>
                         )}
                         {auth.user?.is_vendor && (
-                            <Link href={route('vendor.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Seller</Link>
+                            <>
+                                <Link href={route('vendor.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Seller</Link>
+                                <Link href={route('vendor.products.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Products</Link>
+                                <Link href={route('vendor.reports')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Sales</Link>
+                            </>
                         )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
@@ -37,7 +41,14 @@ export default function AppLayout({ header, children }) {
                     <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{header}</div>
                 </header>
             )}
-            <main>{children}</main>
+            <main>
+                {flash?.status && (
+                    <div className="mx-auto max-w-7xl px-4 pt-4 lg:px-8">
+                        <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</div>
+                    </div>
+                )}
+                {children}
+            </main>
         </div>
     );
 }

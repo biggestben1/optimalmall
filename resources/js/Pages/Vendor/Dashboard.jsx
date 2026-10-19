@@ -17,6 +17,11 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                             <h1 className="mt-1 font-display text-2xl font-extrabold">{shop.name}</h1>
                             <p className="mt-1 text-sm text-on-surface-variant">{shop.email} · {shop.city}, {shop.state}</p>
                         </div>
+                        <div className="flex flex-wrap gap-3">
+                            <Link href={route('vendor.products.create')} className="btn-primary">Add product</Link>
+                            <Link href={route('vendor.products.index')} className="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold">My products</Link>
+                            <Link href={route('vendor.reports')} className="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold">Sales report</Link>
+                        </div>
                         <div className="grid gap-4 sm:grid-cols-3">
                             {stats.map((stat) => (
                                 <div key={stat.label} className="card-surface p-5">

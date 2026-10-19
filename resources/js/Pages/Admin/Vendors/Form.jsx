@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import InputError from '../../../Components/Admin/InputError';
 
-export default function Form({ vendor, statuses }) {
+export default function Form({ vendor, statuses, hasLogin = false }) {
     const editing = Boolean(vendor?.id);
     const { data, setData, post, put, processing, errors } = useForm({
         name: vendor?.name ?? '',
@@ -12,6 +12,7 @@ export default function Form({ vendor, statuses }) {
         state: vendor?.state ?? '',
         phone: vendor?.phone ?? '',
         email: vendor?.email ?? '',
+        password: '',
     });
 
     const submit = (event) => {
@@ -65,10 +66,18 @@ export default function Form({ vendor, statuses }) {
                         <InputError message={errors.phone} />
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-bold uppercase">Email</label>
-                        <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="w-full rounded-xl border-outline-variant" />
+                        <label className="mb-1 block text-xs font-bold uppercase">Login email</label>
+                        <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="w-full rounded-xl border-outline-variant" required />
                         <InputError message={errors.email} />
                     </div>
+                </div>
+                <div>
+                    <label className="mb-1 block text-xs font-bold uppercase">{hasLogin ? 'New password' : 'Password'}</label>
+                    <input type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} className="w-full rounded-xl border-outline-variant" required={!editing || !hasLogin} />
+                    <p className="mt-1 text-xs text-on-surface-variant">
+                        {hasLogin ? 'Leave blank to keep the current password. The vendor uses this email to sign in, add products, and view sales.' : 'The vendor signs in with this email and password to add products and view sales.'}
+                    </p>
+                    <InputError message={errors.password} />
                 </div>
                 <div className="flex gap-3">
                     <button type="submit" className="btn-primary" disabled={processing}>Save</button>
