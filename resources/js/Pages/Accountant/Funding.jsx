@@ -4,8 +4,7 @@ import Pagination from '../../Components/Admin/Pagination';
 
 export default function Funding({ requests }) {
     return (
-        <AccountantLayout title="Funding receipts" heading="Funding receipts">
-            <p className="mb-4 max-w-2xl text-sm text-on-surface-variant">Approve a receipt only after the transfer is in the mall account. Approval credits the customer wallet. Rejection does not.</p>
+        <AccountantLayout title="Funding receipts" heading="Funding receipts" intro="Approve a receipt only after the transfer is in the mall account. Approval credits the customer wallet. Rejection does not.">
             <div className="space-y-3">
                 {requests.data.map((item) => (
                     <article key={item.id} className="card-surface flex flex-wrap items-center justify-between gap-4 p-4">
@@ -22,7 +21,7 @@ export default function Funding({ requests }) {
                         </div>
                     </article>
                 ))}
-                {requests.data.length === 0 && <p className="text-sm text-on-surface-variant">No funding receipts yet.</p>}
+                {requests.data.length === 0 && <p className="card-surface px-5 py-8 text-center text-sm text-on-surface-variant">No funding receipts yet.</p>}
             </div>
             <div className="mt-4">
                 <Pagination links={requests.links} />

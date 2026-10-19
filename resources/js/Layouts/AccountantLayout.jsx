@@ -40,7 +40,7 @@ function isDesktop() {
     return window.matchMedia('(min-width: 1024px)').matches;
 }
 
-export default function AccountantLayout({ title, heading, children }) {
+export default function AccountantLayout({ title, heading, intro, children }) {
     const { auth, flash } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window === 'undefined' ? true : isDesktop()));
     const isSuperAdmin = auth.user?.role === 'super_admin';
@@ -111,6 +111,13 @@ export default function AccountantLayout({ title, heading, children }) {
                     <Head title={title} />
                     {flash?.status && <p className="mb-4 rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</p>}
                     {flash?.error && <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{flash.error}</p>}
+                    {intro && (
+                        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary-container p-6 text-on-primary lg:p-8">
+                            <div className="text-xs font-bold uppercase tracking-[0.18em] text-tertiary-fixed">{title}</div>
+                            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight">{heading}</h2>
+                            <p className="mt-2 max-w-2xl text-sm text-primary-fixed">{intro}</p>
+                        </section>
+                    )}
                     {children}
                 </main>
             </div>

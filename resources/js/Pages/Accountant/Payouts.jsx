@@ -4,8 +4,7 @@ import Pagination from '../../Components/Admin/Pagination';
 
 export default function Payouts({ payouts, threshold }) {
     return (
-        <AccountantLayout title="Payouts" heading="Vendor payout queue">
-            <p className="mb-4 text-sm text-on-surface-variant">Approval does not pay the seller. Amounts at or above {threshold} need a master admin. A payout is paid only after the bank reference is confirmed.</p>
+        <AccountantLayout title="Payouts" heading="Vendor payout queue" intro={`Approval does not pay the seller. Amounts at or above ${threshold} need a master admin. A payout is paid only after the bank reference is confirmed.`}>
             <div className="space-y-3">
                 {payouts.data.map((payout) => (
                     <article key={payout.id} className="card-surface p-4 text-sm">
@@ -25,6 +24,7 @@ export default function Payouts({ payouts, threshold }) {
                         {payout.can_confirm && <Confirm payout={payout} />}
                     </article>
                 ))}
+                {payouts.data.length === 0 && <p className="card-surface px-5 py-8 text-center text-sm text-on-surface-variant">No payout requests yet.</p>}
             </div>
             <Pagination links={payouts.links} />
         </AccountantLayout>

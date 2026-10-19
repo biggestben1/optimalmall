@@ -3,13 +3,14 @@ import Pagination from '../../Components/Admin/Pagination';
 
 export default function Refunds({ returns }) {
     return (
-        <AccountantLayout title="Refunds" heading="Refund accounting">
+        <AccountantLayout title="Refunds" heading="Refund accounting" intro="A return is recorded here. The wallet is credited only after the refund is posted.">
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-surface-container text-xs uppercase text-on-surface-variant">
                         <tr><th className="px-4 py-3">Order</th><th className="px-4 py-3">Amount</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ledger</th></tr>
                     </thead>
                     <tbody className="divide-y divide-surface-container">
+                        {returns.data.length === 0 && <tr><td className="px-4 py-6 text-on-surface-variant" colSpan="4">No refunds yet.</td></tr>}
                         {returns.data.map((row) => (
                             <tr key={row.id}>
                                 <td className="px-4 py-3 font-semibold">{row.order}</td>

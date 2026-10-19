@@ -7,10 +7,10 @@ export default function Wallets({ wallets, filters, can_freeze, can_prepare, can
     const [search, setSearch] = useState(filters.search ?? '');
 
     return (
-        <AccountantLayout title="Wallets" heading="Customer and seller wallets">
+        <AccountantLayout title="Wallets" heading="Customer and seller wallets" intro="Balances here are money the mall owes. Freezing a wallet pauses funding and payments.">
             <form className="mb-4 flex gap-2" onSubmit={(event) => { event.preventDefault(); router.get(route('accountant.wallets'), { search }, { preserveState: true }); }}>
                 <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Name or email" value={search} onChange={(event) => setSearch(event.target.value)} />
-                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white">Search</button>
+                <button className="btn-primary">Search</button>
             </form>
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
@@ -18,6 +18,7 @@ export default function Wallets({ wallets, filters, can_freeze, can_prepare, can
                         <tr><th className="px-4 py-3">Owner</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Balance</th><th className="px-4 py-3">Status</th><th className="px-4 py-3" /></tr>
                     </thead>
                     <tbody className="divide-y divide-surface-container">
+                        {wallets.data.length === 0 && <tr><td className="px-4 py-6 text-on-surface-variant" colSpan="5">No wallets match this search.</td></tr>}
                         {wallets.data.map((wallet) => (
                             <tr key={wallet.id}>
                                 <td className="px-4 py-3 font-semibold">{wallet.owner}</td>

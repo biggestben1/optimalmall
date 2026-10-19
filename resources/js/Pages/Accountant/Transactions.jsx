@@ -9,7 +9,7 @@ export default function Transactions({ transactions, filters }) {
     const apply = (extra = {}) => router.get(route('accountant.transactions'), { ...filters, search, ...extra }, { preserveState: true, replace: true });
 
     return (
-        <AccountantLayout title="Wallet transactions" heading="Wallet transactions">
+        <AccountantLayout title="Wallet transactions" heading="Wallet transactions" intro="Search movements by reference, or export the current list.">
             <form className="mb-4 flex flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); apply(); }}>
                 <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Reference or description" value={search} onChange={(event) => setSearch(event.target.value)} />
                 <select className="rounded-lg border px-3 py-2 text-sm" value={filters.status ?? ''} onChange={(event) => apply({ status: event.target.value })}>
@@ -19,8 +19,8 @@ export default function Transactions({ transactions, filters }) {
                     <option value="failed">Failed</option>
                     <option value="reversed">Reversed</option>
                 </select>
-                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white">Search</button>
-                <a className="rounded-lg border px-4 py-2 text-sm font-bold" href={`${route('accountant.transactions')}?export=1`}>Export</a>
+                <button className="btn-primary">Search</button>
+                <a className="rounded-xl border border-surface-container bg-surface-container-lowest px-4 py-2 text-sm font-bold" href={`${route('accountant.transactions')}?export=1`}>Export</a>
             </form>
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
@@ -35,6 +35,7 @@ export default function Transactions({ transactions, filters }) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-surface-container">
+                        {transactions.data.length === 0 && <tr><td className="px-4 py-6 text-on-surface-variant" colSpan="6">No transactions match this search.</td></tr>}
                         {transactions.data.map((row) => (
                             <tr key={row.id}>
                                 <td className="px-4 py-3">{row.created_at}</td>

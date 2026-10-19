@@ -16,8 +16,8 @@ export default function Policy({ settings, actions }) {
     };
 
     return (
-        <AccountantLayout title="Wallet policy" heading="Wallet policy">
-            <form className="card-surface grid max-w-3xl gap-4 p-4" onSubmit={(event) => { event.preventDefault(); form.put(route('accountant.policy')); }}>
+        <AccountantLayout title="Wallet policy" heading="Wallet policy" intro="Deposits stay off until a licensed provider is connected. Limits apply after that.">
+            <form className="card-surface grid max-w-3xl gap-4 p-5" onSubmit={(event) => { event.preventDefault(); form.put(route('accountant.policy')); }}>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.wallet_deposits_enabled} onChange={(event) => form.setData('wallet_deposits_enabled', event.target.checked)} /> Accept customer deposits</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.regulatory_confirmed} onChange={(event) => form.setData('regulatory_confirmed', event.target.checked)} /> A licensed payment provider is connected and the applicable Nigerian stored-value rules have been confirmed</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.wallet_payments_enabled} onChange={(event) => form.setData('wallet_payments_enabled', event.target.checked)} /> Allow wallet payments for eligible orders</label>
@@ -36,7 +36,7 @@ export default function Policy({ settings, actions }) {
                         </label>
                     ))}
                 </fieldset>
-                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white" disabled={form.processing}>Save policy</button>
+                <button className="btn-primary w-fit" disabled={form.processing}>Save policy</button>
             </form>
         </AccountantLayout>
     );
