@@ -1,49 +1,75 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '../../Layouts/AppLayout';
 
+const passwordFields = [
+    ['current_password', 'Current password'],
+    ['password', 'New password'],
+    ['password_confirmation', 'Confirm new password'],
+];
+
 export default function Edit({ status }) {
     const user = usePage().props.auth.user;
     const profile = useForm({ name: user.name, email: user.email });
     const password = useForm({ current_password: '', password: '', password_confirmation: '' });
     const destroyForm = useForm({ password: '' });
+    const firstName = user.name?.split(' ')[0] || 'there';
 
     return (
-        <AppLayout header={<h2 className="font-display text-xl font-bold">Profile</h2>}>
+        <AppLayout>
             <Head title="Profile" />
-            <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 lg:px-8">
-                {status && <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{status}</div>}
+            <div className="mx-auto max-w-3xl px-4 py-8 lg:px-8">
+                <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary-container p-6 text-on-primary lg:p-8">
+                    <div className="text-xs font-bold uppercase tracking-[0.18em] text-tertiary-fixed">Profile</div>
+                    <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">Hello, {firstName}</h1>
+                    <p className="mt-2 text-sm text-primary-fixed">{user.email}</p>
+                </section>
 
-                <form onSubmit={(e) => { e.preventDefault(); profile.patch(route('profile.update')); }} className="card-surface space-y-4 p-6">
-                    <h3 className="font-display font-bold">Profile information</h3>
+                {status && <div className="mt-4 rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{status}</div>}
+
+                <form onSubmit={(event) => { event.preventDefault(); profile.patch(route('profile.update')); }} className="card-surface mt-6 space-y-4 p-5 lg:p-6">
                     <div>
-                        <label className="mb-1 block text-xs font-bold uppercase">Name</label>
-                        <input value={profile.data.name} onChange={(e) => profile.setData('name', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                        {profile.errors.name && <div className="text-sm text-red-600">{profile.errors.name}</div>}
+                        <div className="text-xs font-bold uppercase tracking-wide text-secondary">Account</div>
+                        <h2 className="font-display text-2xl font-bold">Your details</h2>
                     </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-bold uppercase">Email</label>
-                        <input type="email" value={profile.data.email} onChange={(e) => profile.setData('email', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                        {profile.errors.email && <div className="text-sm text-red-600">{profile.errors.email}</div>}
-                    </div>
-                    <button className="btn-primary" disabled={profile.processing}>Save</button>
+                    <label className="block text-sm">
+                        <span className="mb-1 block text-on-surface-variant">Name</span>
+                        <input value={profile.data.name} onChange={(event) => profile.setData('name', event.target.value)} className="w-full rounded-xl border border-surface-container px-3 py-2" />
+                        {profile.errors.name && <span className="text-red-700">{profile.errors.name}</span>}
+                    </label>
+                    <label className="block text-sm">
+                        <span className="mb-1 block text-on-surface-variant">Email</span>
+                        <input type="email" value={profile.data.email} onChange={(event) => profile.setData('email', event.target.value)} className="w-full rounded-xl border border-surface-container px-3 py-2" />
+                        {profile.errors.email && <span className="text-red-700">{profile.errors.email}</span>}
+                    </label>
+                    <button className="btn-primary" disabled={profile.processing}>Save details</button>
                 </form>
 
-                <form onSubmit={(e) => { e.preventDefault(); password.put(route('profile.password')); }} className="card-surface space-y-4 p-6">
-                    <h3 className="font-display font-bold">Update password</h3>
-                    {['current_password', 'password', 'password_confirmation'].map((field) => (
-                        <div key={field}>
-                            <label className="mb-1 block text-xs font-bold uppercase">{field.replaceAll('_', ' ')}</label>
-                            <input type="password" value={password.data[field]} onChange={(e) => password.setData(field, e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                            {password.errors[field] && <div className="text-sm text-red-600">{password.errors[field]}</div>}
-                        </div>
+                <form onSubmit={(event) => { event.preventDefault(); password.put(route('profile.password')); }} className="card-surface mt-4 space-y-4 p-5 lg:p-6">
+                    <div>
+                        <div className="text-xs font-bold uppercase tracking-wide text-secondary">Security</div>
+                        <h2 className="font-display text-2xl font-bold">Password</h2>
+                    </div>
+                    {passwordFields.map(([field, label]) => (
+                        <label key={field} className="block text-sm">
+                            <span className="mb-1 block text-on-surface-variant">{label}</span>
+                            <input type="password" value={password.data[field]} onChange={(event) => password.setData(field, event.target.value)} className="w-full rounded-xl border border-surface-container px-3 py-2" />
+                            {password.errors[field] && <span className="text-red-700">{password.errors[field]}</span>}
+                        </label>
                     ))}
                     <button className="btn-primary" disabled={password.processing}>Update password</button>
                 </form>
 
-                <form onSubmit={(e) => { e.preventDefault(); if (confirm('Delete your account?')) destroyForm.delete(route('profile.destroy')); }} className="card-surface space-y-4 p-6">
-                    <h3 className="font-display font-bold text-red-700">Delete account</h3>
-                    <input type="password" placeholder="Confirm password" value={destroyForm.data.password} onChange={(e) => destroyForm.setData('password', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                    {destroyForm.errors.password && <div className="text-sm text-red-600">{destroyForm.errors.password}</div>}
+                <form onSubmit={(event) => { event.preventDefault(); if (confirm('Delete your account?')) destroyForm.delete(route('profile.destroy')); }} className="card-surface mt-4 space-y-4 border border-red-100 p-5 lg:p-6">
+                    <div>
+                        <div className="text-xs font-bold uppercase tracking-wide text-red-700">Danger</div>
+                        <h2 className="font-display text-2xl font-bold">Delete account</h2>
+                        <p className="mt-1 text-sm text-on-surface-variant">This removes your login. Orders already placed stay on record.</p>
+                    </div>
+                    <label className="block text-sm">
+                        <span className="mb-1 block text-on-surface-variant">Confirm with your password</span>
+                        <input type="password" value={destroyForm.data.password} onChange={(event) => destroyForm.setData('password', event.target.value)} className="w-full rounded-xl border border-surface-container px-3 py-2" />
+                        {destroyForm.errors.password && <span className="text-red-700">{destroyForm.errors.password}</span>}
+                    </label>
                     <button className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white" disabled={destroyForm.processing}>Delete account</button>
                 </form>
             </div>

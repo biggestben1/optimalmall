@@ -11,12 +11,12 @@ export default function AppLayout({ header, children }) {
                 <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 lg:px-8">
                     <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
                         <ApplicationLogo showTagline={false} size="sm" />
-                        <Link href={route('dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Dashboard</Link>
-                        <Link href={route('profile.edit')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Profile</Link>
+                        <NavLink href={route('dashboard')} active={route().current('dashboard')}>Dashboard</NavLink>
+                        <NavLink href={route('profile.edit')} active={route().current('profile.edit')}>Profile</NavLink>
                         {auth.user?.role === 'customer' && (
                             <>
-                                <Link href={route('account.orders.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Orders</Link>
-                                <Link href={route('wallet.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Wallet</Link>
+                                <NavLink href={route('account.orders.index')} active={route().current('account.orders.*')}>Orders</NavLink>
+                                <NavLink href={route('wallet.index')} active={route().current('wallet.*')}>Wallet</NavLink>
                             </>
                         )}
                         {auth.user?.is_super_admin && (
@@ -44,13 +44,22 @@ export default function AppLayout({ header, children }) {
                 </header>
             )}
             <main>
-                {flash?.status && (
-                    <div className="mx-auto max-w-7xl px-4 pt-4 lg:px-8">
-                        <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</div>
+                {(flash?.status || flash?.error) && (
+                    <div className="mx-auto max-w-7xl space-y-2 px-4 pt-4 lg:px-8">
+                        {flash?.status && <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</div>}
+                        {flash?.error && <div className="rounded-xl bg-red-100 px-4 py-3 text-sm font-semibold text-red-800">{flash.error}</div>}
                     </div>
                 )}
                 {children}
             </main>
         </div>
+    );
+}
+
+function NavLink({ href, active, children }) {
+    return (
+        <Link href={href} className={`text-sm font-semibold ${active ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
+            {children}
+        </Link>
     );
 }
