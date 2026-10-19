@@ -30,7 +30,7 @@ export default function Index({ balance, frozen, payments_enabled, transactions,
                                 {account.number && <div><dt className="text-on-surface-variant">Account number</dt><dd className="font-display text-3xl font-extrabold tracking-tight text-primary">{account.number}</dd></div>}
                             </dl>
                         ) : (
-                            <p className="mt-4 rounded-xl bg-surface-container px-3 py-3 text-sm text-on-surface-variant">The receiving account is not saved yet. An admin adds the bank, account name, and account number in Settings.</p>
+                            <p className="mt-4 rounded-xl bg-surface-container px-3 py-3 text-sm text-on-surface-variant">The receiving account is not saved yet. An accountant adds it from Wallets.</p>
                         )}
                     </section>
                     <section className="card-surface p-5">

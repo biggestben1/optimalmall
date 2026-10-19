@@ -1,6 +1,8 @@
 import { Head, useForm } from '@inertiajs/react';
 import GuestLayout from '../../Layouts/GuestLayout';
 
+const fieldClass = 'w-full rounded-xl border border-surface-container px-3 py-2';
+
 export default function ResetPassword({ email, token }) {
     const { data, setData, post, processing, errors } = useForm({
         token,
@@ -10,24 +12,26 @@ export default function ResetPassword({ email, token }) {
     });
 
     return (
-        <GuestLayout>
+        <GuestLayout title="Choose a new password">
             <Head title="Reset password" />
-            <form onSubmit={(e) => { e.preventDefault(); post(route('password.store')); }} className="space-y-4">
-                <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Email</label>
-                    <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                    {errors.email && <div className="mt-1 text-sm text-red-600">{errors.email}</div>}
-                </div>
-                <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Password</label>
-                    <input type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                    {errors.password && <div className="mt-1 text-sm text-red-600">{errors.password}</div>}
-                </div>
-                <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Confirm password</label>
-                    <input type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} className="w-full rounded-xl border-outline-variant" />
-                </div>
-                <button type="submit" className="btn-primary" disabled={processing}>Reset password</button>
+            <div className="text-xs font-bold uppercase tracking-wide text-secondary">Account recovery</div>
+            <h2 className="font-display text-2xl font-bold">Reset password</h2>
+            <form onSubmit={(event) => { event.preventDefault(); post(route('password.store')); }} className="mt-5 space-y-4">
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">Email</span>
+                    <input type="email" value={data.email} onChange={(event) => setData('email', event.target.value)} className={fieldClass} required />
+                    {errors.email && <span className="text-red-700">{errors.email}</span>}
+                </label>
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">New password</span>
+                    <input type="password" value={data.password} onChange={(event) => setData('password', event.target.value)} className={fieldClass} required />
+                    {errors.password && <span className="text-red-700">{errors.password}</span>}
+                </label>
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">Confirm password</span>
+                    <input type="password" value={data.password_confirmation} onChange={(event) => setData('password_confirmation', event.target.value)} className={fieldClass} required />
+                </label>
+                <button type="submit" className="btn-primary w-full" disabled={processing}>Reset password</button>
             </form>
         </GuestLayout>
     );

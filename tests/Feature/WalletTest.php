@@ -242,6 +242,24 @@ it('credits a wallet only after an accountant approves the receipt', function ()
         ->and($funding->fresh()->status)->toBe('approved');
 });
 
+it('publishes the top-up account an accountant saves', function () {
+    $accountant = User::factory()->create(['role' => UserRole::Accountant]);
+    $customer = User::factory()->create();
+
+    $this->actingAs($accountant)->post(route('accountant.wallets.funding-account'), [
+        'funding_bank' => 'Test Bank',
+        'funding_account_name' => 'OptimalMall',
+        'funding_account_number' => '0123456789',
+    ])->assertRedirect();
+
+    $this->actingAs($customer)->get(route('wallet.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('account.bank', 'Test Bank')
+            ->where('account.name', 'OptimalMall')
+            ->where('account.number', '0123456789'));
+});
+
 it('leaves the wallet unchanged when the receipt is rejected', function () {
     Storage::fake('local');
     $customer = User::factory()->create();

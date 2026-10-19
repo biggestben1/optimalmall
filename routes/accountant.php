@@ -10,6 +10,7 @@ Route::middleware(['auth', 'finance.user', 'admin.two_factor', 'admin.enrolled',
         Route::get('/', [WorkspaceController::class, 'dashboard'])->name('dashboard');
         Route::get('transactions', [WorkspaceController::class, 'transactions'])->name('transactions');
         Route::get('wallets', [WorkspaceController::class, 'wallets'])->name('wallets');
+        Route::post('wallets/funding-account', [WorkspaceController::class, 'updateFundingAccount'])->name('wallets.funding-account');
         Route::get('funding', [WorkspaceController::class, 'funding'])->name('funding');
         Route::get('funding/{funding}/proof', [WorkspaceController::class, 'fundingProof'])->name('funding.proof');
         Route::post('funding/{funding}/approve', [WorkspaceController::class, 'approveFunding'])->name('funding.approve');

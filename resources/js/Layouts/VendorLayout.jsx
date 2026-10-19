@@ -172,6 +172,15 @@ export default function VendorLayout({ title, heading, children }) {
                             {flash.status}
                         </div>
                     )}
+                    {flash?.error && (
+                        <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                            {flash.error}
+                        </div>
+                    )}
+                    <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary-container p-6 text-on-primary">
+                        <div className="text-xs font-bold uppercase tracking-[0.18em] text-tertiary-fixed">{title}</div>
+                        <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight">{heading}</h2>
+                    </section>
                     {children}
                 </main>
             </div>

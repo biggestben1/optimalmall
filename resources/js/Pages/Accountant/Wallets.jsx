@@ -3,11 +3,41 @@ import { useState } from 'react';
 import AccountantLayout from '../../Layouts/AccountantLayout';
 import Pagination from '../../Components/Admin/Pagination';
 
-export default function Wallets({ wallets, filters, can_freeze, can_prepare, can_approve, adjustments }) {
+export default function Wallets({ wallets, filters, account, can_freeze, can_prepare, can_approve, adjustments }) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const funding = useForm({
+        funding_bank: account?.bank ?? '',
+        funding_account_name: account?.name ?? '',
+        funding_account_number: account?.number ?? '',
+    });
 
     return (
-        <AccountantLayout title="Wallets" heading="Customer and seller wallets" intro="Balances here are money the mall owes. Freezing a wallet pauses funding and payments.">
+        <AccountantLayout title="Wallets" heading="Customer and seller wallets" intro="Balances here are money the mall owes. The top-up account below is what customers pay into before a receipt is approved.">
+            <form className="card-surface mb-6 grid gap-3 p-5 md:grid-cols-3" onSubmit={(event) => { event.preventDefault(); funding.post(route('accountant.wallets.funding-account')); }}>
+                <div className="md:col-span-3">
+                    <div className="text-xs font-bold uppercase tracking-wide text-secondary">Top up</div>
+                    <h2 className="font-display text-2xl font-bold">Account customers pay into</h2>
+                    <p className="mt-1 text-sm text-on-surface-variant">These details show on the customer wallet page. The balance changes only after a receipt is approved.</p>
+                </div>
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">Bank</span>
+                    <input className="w-full rounded-xl border border-surface-container px-3 py-2" value={funding.data.funding_bank} onChange={(event) => funding.setData('funding_bank', event.target.value)} required />
+                    {funding.errors.funding_bank && <span className="text-red-700">{funding.errors.funding_bank}</span>}
+                </label>
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">Account name</span>
+                    <input className="w-full rounded-xl border border-surface-container px-3 py-2" value={funding.data.funding_account_name} onChange={(event) => funding.setData('funding_account_name', event.target.value)} required />
+                    {funding.errors.funding_account_name && <span className="text-red-700">{funding.errors.funding_account_name}</span>}
+                </label>
+                <label className="block text-sm">
+                    <span className="mb-1 block text-on-surface-variant">Account number</span>
+                    <input className="w-full rounded-xl border border-surface-container px-3 py-2" value={funding.data.funding_account_number} onChange={(event) => funding.setData('funding_account_number', event.target.value)} required />
+                    {funding.errors.funding_account_number && <span className="text-red-700">{funding.errors.funding_account_number}</span>}
+                </label>
+                <div className="md:col-span-3">
+                    <button className="btn-primary" disabled={funding.processing}>Save top-up account</button>
+                </div>
+            </form>
             <form className="mb-4 flex gap-2" onSubmit={(event) => { event.preventDefault(); router.get(route('accountant.wallets'), { search }, { preserveState: true }); }}>
                 <input className="rounded-lg border px-3 py-2 text-sm" placeholder="Name or email" value={search} onChange={(event) => setSearch(event.target.value)} />
                 <button className="btn-primary">Search</button>

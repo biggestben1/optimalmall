@@ -1,6 +1,15 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import GuestLayout from '../../Layouts/GuestLayout';
 
+const fields = [
+    ['name', 'Name', 'text'],
+    ['email', 'Email', 'email'],
+    ['password', 'Password', 'password'],
+    ['password_confirmation', 'Confirm password', 'password'],
+];
+
+const fieldClass = 'w-full rounded-xl border border-surface-container px-3 py-2';
+
 export default function Register() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
@@ -10,25 +19,20 @@ export default function Register() {
     });
 
     return (
-        <GuestLayout>
+        <GuestLayout title="Create your account">
             <Head title="Register" />
-            <form onSubmit={(e) => { e.preventDefault(); post(route('register')); }} className="space-y-4">
-                {['name', 'email', 'password', 'password_confirmation'].map((field) => (
-                    <div key={field}>
-                        <label className="mb-1 block text-xs font-bold uppercase">{field.replace('_', ' ')}</label>
-                        <input
-                            type={field.includes('password') ? 'password' : field === 'email' ? 'email' : 'text'}
-                            value={data[field]}
-                            onChange={(e) => setData(field, e.target.value)}
-                            className="w-full rounded-xl border-outline-variant"
-                        />
-                        {errors[field] && <div className="mt-1 text-sm text-red-600">{errors[field]}</div>}
-                    </div>
+            <div className="text-xs font-bold uppercase tracking-wide text-secondary">New shopper</div>
+            <h2 className="font-display text-2xl font-bold">Register</h2>
+            <form onSubmit={(event) => { event.preventDefault(); post(route('register')); }} className="mt-5 space-y-4">
+                {fields.map(([field, label, type]) => (
+                    <label key={field} className="block text-sm">
+                        <span className="mb-1 block text-on-surface-variant">{label}</span>
+                        <input type={type} value={data[field]} onChange={(event) => setData(field, event.target.value)} className={fieldClass} required />
+                        {errors[field] && <span className="text-red-700">{errors[field]}</span>}
+                    </label>
                 ))}
-                <div className="flex items-center justify-between">
-                    <Link href={route('login')} className="text-sm text-primary underline">Already registered?</Link>
-                    <button type="submit" className="btn-primary" disabled={processing}>Register</button>
-                </div>
+                <button type="submit" className="btn-primary w-full" disabled={processing}>Create account</button>
+                <p className="text-sm text-on-surface-variant">Already registered? <Link href={route('login')} className="font-bold text-primary">Log in</Link></p>
             </form>
         </GuestLayout>
     );

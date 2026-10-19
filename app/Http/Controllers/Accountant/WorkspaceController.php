@@ -156,6 +156,11 @@ class WorkspaceController extends Controller
 
         return Inertia::render('Accountant/Wallets', [
             'wallets' => $wallets,
+            'account' => [
+                'bank' => (string) MarketplaceSettings::get('funding_bank', ''),
+                'name' => (string) MarketplaceSettings::get('funding_account_name', ''),
+                'number' => (string) MarketplaceSettings::get('funding_account_number', ''),
+            ],
             'filters' => ['search' => $search],
             'can_freeze' => AccountantGate::allows($request->user(), 'wallets.freeze'),
             'can_prepare' => AccountantGate::allows($request->user(), 'adjustments.prepare'),
@@ -169,6 +174,25 @@ class WorkspaceController extends Controller
                 'status' => $adjustment->status,
             ]),
         ]);
+    }
+
+    public function updateFundingAccount(Request $request): RedirectResponse
+    {
+        abort_unless(AccountantGate::allows($request->user(), 'transactions.view'), 403);
+
+        $data = $request->validate([
+            'funding_bank' => ['required', 'string', 'max:80'],
+            'funding_account_name' => ['required', 'string', 'max:120'],
+            'funding_account_number' => ['required', 'string', 'max:20'],
+        ]);
+
+        MarketplaceSettings::put($data);
+        AuditLogger::record('wallet.funding_account', null, [
+            'bank' => $data['funding_bank'],
+            'account_name' => $data['funding_account_name'],
+        ], null, $request->user());
+
+        return back()->with('status', 'Top-up account saved. Customers see it when they add money to a wallet.');
     }
 
     public function freeze(Request $request, Wallet $wallet): RedirectResponse
