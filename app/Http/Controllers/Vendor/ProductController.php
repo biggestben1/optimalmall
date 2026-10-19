@@ -15,14 +15,19 @@ class ProductController extends Controller
     public function index(Request $request): Response
     {
         $portal = Portal::current();
+        $search = $request->string('search')->toString() ?: $request->string('q')->toString();
 
         return Inertia::render('Vendor/Products/Index', [
             'products' => $portal->products(
-                $request->string('q')->toString(),
+                $search,
                 $request->string('status')->toString(),
                 $request->string('approval')->toString(),
             ),
-            'filters' => $request->only(['q', 'status', 'approval']),
+            'filters' => [
+                'search' => $search,
+                'status' => $request->string('status')->toString(),
+                'approval' => $request->string('approval')->toString(),
+            ],
         ]);
     }
 

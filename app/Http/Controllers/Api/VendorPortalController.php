@@ -35,7 +35,7 @@ class VendorPortalController extends Controller
     public function products(Request $request): JsonResponse
     {
         return response()->json(Portal::current()->products(
-            $request->string('q')->toString(),
+            $request->string('search')->toString() ?: $request->string('q')->toString(),
             $request->string('status')->toString(),
             $request->string('approval')->toString(),
         ));

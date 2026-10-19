@@ -158,7 +158,15 @@ class Portal
     public function products(string $search = '', string $status = '', string $approval = ''): LengthAwarePaginator
     {
         return $this->shop->products()
-            ->when($search !== '', fn ($query) => $query->where('title', 'like', '%'.$search.'%'))
+            ->when($search !== '', function ($query) use ($search) {
+                $term = '%'.$search.'%';
+                $query->where(function ($inner) use ($term) {
+                    $inner->where('title', 'like', $term)
+                        ->orWhere('description', 'like', $term)
+                        ->orWhere('sku', 'like', $term)
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', $term));
+                });
+            })
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->when($approval !== '', fn ($query) => $query->where('approval_status', $approval))
             ->latest()

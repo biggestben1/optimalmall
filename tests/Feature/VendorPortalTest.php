@@ -49,6 +49,32 @@ it('opens every seller module for the signed-in shop', function () {
     }
 });
 
+it('searches a seller catalogue by sku without showing another shop', function () {
+    [$seller, $vendor] = vendorShop();
+    Product::factory()->create([
+        'vendor_id' => $vendor->id,
+        'title' => 'Blue Kettle',
+        'sku' => 'KET-99',
+    ]);
+    Product::factory()->create([
+        'vendor_id' => $vendor->id,
+        'title' => 'Red Pan',
+        'sku' => 'PAN-1',
+    ]);
+    Product::factory()->create([
+        'title' => 'Other Kettle',
+        'sku' => 'KET-99-OTHER',
+    ]);
+
+    $this->actingAs($seller)
+        ->get(route('vendor.products.index', ['search' => 'KET-99']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('products.data', 1)
+            ->where('products.data.0.title', 'Blue Kettle')
+            ->where('filters.search', 'KET-99'));
+});
+
 it('stores an uploaded product image on the public disk', function () {
     Storage::fake('public');
     [$seller] = vendorShop();
