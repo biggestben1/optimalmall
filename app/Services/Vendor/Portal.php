@@ -214,6 +214,7 @@ class Portal
                 'image_url' => $remoteImages[0] ?? '',
                 'image_urls' => implode("\n", array_slice($remoteImages, 1)),
                 'image_preview' => isset($images[0]) ? $this->imageUrl($images[0]) : '',
+                'image_previews' => array_map(fn (string $path) => $this->imageUrl($path), $images),
             ],
             'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
             'statuses' => collect(ProductStatus::cases())->map(fn (ProductStatus $status) => [
@@ -248,6 +249,7 @@ class Portal
             'status' => ['required', Rule::enum(ProductStatus::class)],
             'image_url' => ['nullable', 'url', 'max:500'],
             'image_urls' => ['nullable', 'string', 'max:5000'],
+            'image' => ['nullable', 'image', 'max:4096'],
             'images' => ['nullable', 'array', 'max:8'],
             'images.*' => ['image', 'max:4096'],
         ])->validate();
@@ -256,11 +258,12 @@ class Portal
             ->map(fn ($url) => trim($url))
             ->filter();
         $imageUrl = $data['image_url'] ?? null;
-        $uploads = collect($input['images'] ?? [])
+        $uploads = collect([$input['image'] ?? null])
+            ->merge($input['images'] ?? [])
             ->filter(fn ($file) => $file instanceof UploadedFile)
             ->map(fn (UploadedFile $file) => $file->store('products', 'public'))
             ->values();
-        unset($data['image_url'], $data['image_urls'], $data['images']);
+        unset($data['image_url'], $data['image_urls'], $data['image'], $data['images']);
 
         if (($data['compare_at_price'] ?? '') === '') {
             $data['compare_at_price'] = null;

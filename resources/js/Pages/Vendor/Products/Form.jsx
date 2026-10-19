@@ -5,7 +5,9 @@ import InputError from '../../../Components/Admin/InputError';
 
 export default function Form({ product, categories, statuses, approval_required }) {
     const editing = Boolean(product?.id);
-    const [previews, setPreviews] = useState([]);
+    const [primaryFile, setPrimaryFile] = useState(null);
+    const [primaryPreview, setPrimaryPreview] = useState('');
+    const [extraRows, setExtraRows] = useState([{ id: 1, file: null, preview: '' }]);
     const { data, setData, post, processing, errors, transform } = useForm({
         category_id: product?.category_id ?? categories[0]?.id ?? '',
         title: product?.title ?? '',
@@ -17,24 +19,49 @@ export default function Form({ product, categories, statuses, approval_required 
         status: product?.status ?? 'draft',
         image_url: product?.image_url ?? '',
         image_urls: product?.image_urls ?? '',
-        images: [],
     });
 
     const submit = (event) => {
         event.preventDefault();
-        transform((payload) => ({
-            ...payload,
-            ...(editing ? { _method: 'put' } : {}),
-        }));
+        const extraFiles = extraRows.map((row) => row.file).filter(Boolean);
+        transform((payload) => {
+            const next = {
+                ...payload,
+                images: extraFiles,
+                ...(editing ? { _method: 'put' } : {}),
+            };
+
+            if (primaryFile) {
+                next.image = primaryFile;
+            }
+
+            return next;
+        });
         post(editing ? route('vendor.products.update', product.id) : route('vendor.products.store'), {
             forceFormData: true,
         });
     };
 
-    const chooseImages = (event) => {
-        const files = Array.from(event.target.files || []);
-        setData('images', files);
-        setPreviews(files.map((file) => URL.createObjectURL(file)));
+    const choosePrimary = (event) => {
+        const file = event.target.files?.[0] ?? null;
+        setPrimaryFile(file);
+        setPrimaryPreview(file ? URL.createObjectURL(file) : '');
+    };
+
+    const chooseExtra = (id, file) => {
+        setExtraRows((rows) => rows.map((row) => (
+            row.id === id
+                ? { ...row, file, preview: file ? URL.createObjectURL(file) : '' }
+                : row
+        )));
+    };
+
+    const addExtra = () => {
+        setExtraRows((rows) => [...rows, { id: Date.now(), file: null, preview: '' }]);
+    };
+
+    const removeExtra = (id) => {
+        setExtraRows((rows) => (rows.length === 1 ? [{ id: Date.now(), file: null, preview: '' }] : rows.filter((row) => row.id !== id)));
     };
 
     return (
@@ -100,27 +127,48 @@ export default function Form({ product, categories, statuses, approval_required 
                     </div>
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Upload images</label>
-                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={chooseImages} className="block w-full text-sm" />
-                    <p className="mt-1 text-xs text-on-surface-variant">The first image is the main photo. JPG, PNG, WEBP, or GIF up to 4 MB each.</p>
-                    <InputError message={errors.images} />
-                    <InputError message={errors['images.0']} />
-                    {(previews.length > 0 || product?.image_preview) && (
-                        <div className="mt-3 flex flex-wrap gap-3">
-                            {(previews.length > 0 ? previews : [product.image_preview]).map((src) => (
-                                <img key={src} src={src} alt="" className="h-24 w-24 rounded-xl object-cover" />
-                            ))}
-                        </div>
+                    <label className="mb-1 block text-xs font-bold uppercase">Main photo</label>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={choosePrimary} className="block w-full text-sm" />
+                    <p className="mt-1 text-xs text-on-surface-variant">JPG, PNG, WEBP, or GIF up to 4 MB.</p>
+                    <InputError message={errors.image} />
+                    {(primaryPreview || product?.image_preview) && (
+                        <img src={primaryPreview || product.image_preview} alt="" className="mt-3 h-24 w-24 rounded-xl object-cover" />
                     )}
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Or paste an image URL</label>
+                    <label className="mb-1 block text-xs font-bold uppercase">Or paste a main image URL</label>
                     <input value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="https://..." />
                     <InputError message={errors.image_url} />
                 </div>
-                <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">More image URLs</label>
-                    <textarea value={data.image_urls} onChange={(e) => setData('image_urls', e.target.value)} rows={3} className="w-full rounded-xl border-outline-variant" placeholder="One image URL per line" />
+                <div className="space-y-3 rounded-xl border border-outline-variant p-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <label className="text-xs font-bold uppercase">More images</label>
+                        <button type="button" onClick={addExtra} className="text-sm font-bold text-primary">Add another image</button>
+                    </div>
+                    <p className="text-xs text-on-surface-variant">Upload extra photos, or paste more image URLs below. One URL per line.</p>
+                    {extraRows.map((row, index) => (
+                        <div key={row.id} className="flex flex-wrap items-center gap-3">
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                onChange={(event) => chooseExtra(row.id, event.target.files?.[0] ?? null)}
+                                className="block min-w-0 flex-1 text-sm"
+                                aria-label={`Extra image ${index + 1}`}
+                            />
+                            {row.preview && <img src={row.preview} alt="" className="h-16 w-16 rounded-lg object-cover" />}
+                            <button type="button" onClick={() => removeExtra(row.id)} className="text-sm font-bold text-on-surface-variant">Remove</button>
+                            <InputError message={errors[`images.${index}`]} />
+                        </div>
+                    ))}
+                    <InputError message={errors.images} />
+                    {(product?.image_previews ?? []).length > 1 && (
+                        <div className="flex flex-wrap gap-2">
+                            {product.image_previews.slice(1).map((src) => (
+                                <img key={src} src={src} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                            ))}
+                        </div>
+                    )}
+                    <textarea value={data.image_urls} onChange={(e) => setData('image_urls', e.target.value)} rows={3} className="w-full rounded-xl border-outline-variant" placeholder="More image URLs, one per line" />
                     <InputError message={errors.image_urls} />
                 </div>
                 <div className="flex gap-3">

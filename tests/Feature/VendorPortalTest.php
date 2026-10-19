@@ -95,6 +95,29 @@ it('stores an uploaded product image on the public disk', function () {
     Storage::disk('public')->assertExists($product->images->first()->path);
 });
 
+it('stores a main photo and extra uploaded images', function () {
+    Storage::fake('public');
+    [$seller] = vendorShop();
+    $category = Category::factory()->create();
+    $png = file_get_contents(public_path('favicon-32.png'));
+
+    $this->actingAs($seller)->post(route('vendor.products.store'), [
+        'category_id' => $category->id,
+        'title' => 'Gallery Lamp',
+        'price' => 9000,
+        'stock' => 2,
+        'status' => ProductStatus::Draft->value,
+        'image' => UploadedFile::fake()->createWithContent('main.png', $png),
+        'images' => [UploadedFile::fake()->createWithContent('extra.png', $png)],
+    ])->assertRedirect(route('vendor.products.index'));
+
+    $product = Product::query()->where('title', 'Gallery Lamp')->with('images')->first();
+
+    expect($product->images)->toHaveCount(2)
+        ->and($product->images->first()->is_primary)->toBeTrue()
+        ->and($product->images->last()->is_primary)->toBeFalse();
+});
+
 it('submits a product for admin approval instead of publishing it', function () {
     [$seller, $vendor] = vendorShop();
     $category = Category::factory()->create();
