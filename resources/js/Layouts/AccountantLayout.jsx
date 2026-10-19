@@ -45,31 +45,42 @@ export default function AccountantLayout({ title, heading, intro, children }) {
     const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window === 'undefined' ? true : isDesktop()));
     const isSuperAdmin = auth.user?.role === 'super_admin';
 
+    const linkClass = (active) => `flex items-center gap-2 rounded-lg py-2 ${sidebarOpen ? 'px-3' : 'justify-center px-2'} ${active ? 'bg-white/15 font-bold' : 'hover:bg-white/10'}`;
+
     return (
-        <div className={`min-h-screen bg-surface-container-low text-on-surface ${sidebarOpen ? 'lg:grid lg:grid-cols-[260px_1fr]' : ''}`}>
+        <div className={`min-h-screen bg-surface-container-low text-on-surface ${sidebarOpen ? 'lg:pl-[260px]' : 'lg:pl-[72px]'}`}>
             {sidebarOpen && (
                 <button type="button" className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label="Close menu" onClick={() => setSidebarOpen(false)} />
             )}
 
-            <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] transform bg-primary text-on-primary transition-transform duration-200 ${sidebarOpen ? 'translate-x-0 lg:static' : '-translate-x-full lg:hidden'}`}>
-                <div className="border-b border-white/10 px-5 py-5">
-                    <ApplicationLogo href={route('accountant.dashboard')} showTagline={false} size="sm" inverted />
-                    <div className="mt-1 pl-10 text-xs text-primary-fixed">Accounting</div>
+            <aside className={`fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-primary text-on-primary transition-all duration-200 ${sidebarOpen ? 'w-[260px] translate-x-0' : 'w-[72px] -translate-x-full lg:translate-x-0'}`}>
+                <div className={`shrink-0 border-b border-white/10 ${sidebarOpen ? 'px-5 py-5' : 'px-2 py-4'}`}>
+                    {sidebarOpen ? (
+                        <>
+                            <ApplicationLogo href={route('accountant.dashboard')} showTagline={false} size="sm" inverted />
+                            <div className="mt-1 pl-10 text-xs text-primary-fixed">Accounting</div>
+                        </>
+                    ) : (
+                        <Link href={route('accountant.dashboard')} className="flex justify-center" title="Accounting">
+                            <img src="/images/logo.png" alt="OptimalMall" className="h-8 w-8 rounded-xl object-cover" />
+                        </Link>
+                    )}
                 </div>
-                <nav className="max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto p-3 text-sm">
+                <nav className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-2 pb-6 text-sm">
                     {groups.map((group) => (
                         <div key={group.label}>
-                            <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">{group.label}</div>
+                            {sidebarOpen && <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">{group.label}</div>}
                             <div className="space-y-1">
                                 {group.links.map(([routeName, label, icon]) => (
                                     <Link
                                         key={routeName}
                                         href={route(routeName)}
-                                        className={`flex items-center gap-2 rounded-lg px-3 py-2 ${route().current(routeName) ? 'bg-white/15 font-bold' : 'hover:bg-white/10'}`}
+                                        title={label}
+                                        className={linkClass(route().current(routeName))}
                                         onClick={() => { if (!isDesktop()) setSidebarOpen(false); }}
                                     >
-                                        <span className="material-symbols-outlined text-[18px]">{icon}</span>
-                                        {label}
+                                        <span className="material-symbols-outlined text-[20px]">{icon}</span>
+                                        <span className={sidebarOpen ? '' : 'sr-only'}>{label}</span>
                                     </Link>
                                 ))}
                             </div>
@@ -77,14 +88,14 @@ export default function AccountantLayout({ title, heading, intro, children }) {
                     ))}
                     {isSuperAdmin && (
                         <div>
-                            <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">Admin</div>
-                            <Link href={route('accountant.policy')} className={`flex items-center gap-2 rounded-lg px-3 py-2 ${route().current('accountant.policy') ? 'bg-white/15 font-bold' : 'hover:bg-white/10'}`}>
-                                <span className="material-symbols-outlined text-[18px]">policy</span>
-                                Policy
+                            {sidebarOpen && <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">Admin</div>}
+                            <Link href={route('accountant.policy')} title="Policy" className={linkClass(route().current('accountant.policy'))}>
+                                <span className="material-symbols-outlined text-[20px]">policy</span>
+                                <span className={sidebarOpen ? '' : 'sr-only'}>Policy</span>
                             </Link>
-                            <Link href={route('admin.dashboard')} className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/10">
-                                <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                                Master admin
+                            <Link href={route('admin.dashboard')} title="Master admin" className={`${linkClass(false)} mt-1`}>
+                                <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                                <span className={sidebarOpen ? '' : 'sr-only'}>Master admin</span>
                             </Link>
                         </div>
                     )}
