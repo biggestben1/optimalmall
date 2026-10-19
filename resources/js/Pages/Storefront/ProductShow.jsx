@@ -1,8 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import StorefrontLayout from '../../Layouts/StorefrontLayout';
 import ProductCard from '../../Components/ProductCard';
 
 export default function ProductShow({ product, related }) {
+    const form = useForm({ quantity: 1 });
+
     return (
         <StorefrontLayout>
             <Head title={product.title} />
@@ -32,12 +34,24 @@ export default function ProductShow({ product, related }) {
                             {product.in_stock ? `${product.stock} in stock` : 'Out of stock'}
                         </div>
                         <p className="mt-6 text-sm leading-relaxed text-on-surface-variant">{product.description}</p>
-                        <div className="mt-8 flex flex-wrap gap-3">
-                            <button type="button" className="btn-accent opacity-60" disabled title="Cart & checkout arrive in Phase 2">Add to cart (Phase 2)</button>
+                        <form className="mt-8 flex flex-wrap items-center gap-3" onSubmit={(event) => { event.preventDefault(); form.post(route('cart.store', product.slug)); }}>
+                            <input
+                                className="w-20 rounded-xl border border-surface-container px-3 py-2 text-sm"
+                                type="number"
+                                min="1"
+                                max={product.stock}
+                                value={form.data.quantity}
+                                disabled={!product.in_stock}
+                                onChange={(event) => form.setData('quantity', event.target.value)}
+                            />
+                            <button className="btn-accent disabled:opacity-60" disabled={!product.in_stock || form.processing}>
+                                {product.in_stock ? 'Add to cart' : 'Out of stock'}
+                            </button>
                             {product.category && (
                                 <Link href={route('products.index', { category: product.category.id })} className="btn-primary">More in category</Link>
                             )}
-                        </div>
+                            {form.errors.quantity && <p className="w-full text-sm text-red-700">{form.errors.quantity}</p>}
+                        </form>
                         <div className="mt-8 rounded-xl bg-surface-container-low p-4 text-sm">
                             <div className="font-display font-bold text-primary">OptimalMall Escrow Protection</div>
                             <p className="mt-1 text-on-surface-variant">Payments and delivery tracking will be enabled in Phase 2.</p>

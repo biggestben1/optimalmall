@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Vendor\AuditLogger;
+use App\Support\AdminAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,6 +33,11 @@ class RoleController extends Controller
         return Inertia::render('Admin/Roles/Index', [
             'users' => $users,
             'roles' => $this->roles(),
+            'permissions' => collect(AdminAccess::grants())->map(fn (array $modules, string $role) => [
+                'role' => $role,
+                'modules' => $modules,
+            ])->values(),
+            'modules' => AdminAccess::modules(),
         ]);
     }
 
@@ -43,10 +50,11 @@ class RoleController extends Controller
             'role' => ['required', Rule::enum(UserRole::class)],
         ]);
 
-        User::query()->create([
+        $staff = User::query()->create([
             ...$data,
             'email_verified_at' => now(),
         ]);
+        AuditLogger::record('staff.created', $staff, ['role' => $staff->role->value]);
 
         return redirect()->route('admin.roles.index')->with('status', 'Staff account created.');
     }
@@ -71,6 +79,7 @@ class RoleController extends Controller
         }
 
         $user->update(['role' => $nextRole]);
+        AuditLogger::record('staff.role_changed', $user, ['role' => $nextRole->value]);
 
         return redirect()->route('admin.roles.index')->with('status', 'Role updated.');
     }

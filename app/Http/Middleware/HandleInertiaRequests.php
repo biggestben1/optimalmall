@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Category;
+use App\Support\AdminAccess;
+use App\Support\Cart;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,11 +36,14 @@ class HandleInertiaRequests extends Middleware
                     'unread_notifications' => $user->isVendor()
                         ? (int) $user->vendor?->notifications()->whereNull('read_at')->count()
                         : 0,
+                    'admin_modules' => AdminAccess::modulesFor($user),
                 ] : null,
             ],
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
+                'error' => fn () => $request->session()->get('error'),
             ],
+            'cart' => fn () => app(Cart::class)->summary(),
             'navCategories' => fn () => Category::query()
                 ->whereNull('parent_id')
                 ->where('is_active', true)

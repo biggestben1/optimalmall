@@ -7,8 +7,10 @@ export default function Index({ summary, lines, rate }) {
         ['Commission', summary.commission_label],
         ['Refunds', summary.refunds_label],
         ['Net earnings', summary.net_label],
-        ['Available', summary.available_label],
-        ['Unverified', summary.unverified_label],
+        ['Pending earnings', summary.unverified_label],
+        ['Available earnings', summary.available_label],
+        ['Paid settlements', summary.paid_label],
+        ['Wallet ledger', summary.wallet_label],
     ];
 
     return (

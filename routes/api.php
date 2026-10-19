@@ -1,11 +1,22 @@
 <?php
 
+use App\Http\Controllers\Api\CustomerWalletController;
+use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\VendorAuthController;
 use App\Http\Controllers\Api\VendorPortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::post('login', [VendorAuthController::class, 'store']);
+    Route::post('login', [VendorAuthController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('payments/webhook', [PaymentWebhookController::class, 'store'])->middleware('throttle:60,1');
+    Route::post('customer/login', [CustomerWalletController::class, 'login'])->middleware('throttle:10,1');
+
+    Route::middleware(['auth:sanctum', 'customer'])->prefix('wallet')->group(function () {
+        Route::get('/', [CustomerWalletController::class, 'show']);
+        Route::get('transactions', [CustomerWalletController::class, 'transactions']);
+        Route::post('fund', [CustomerWalletController::class, 'fund']);
+        Route::post('orders/{order}/pay', [CustomerWalletController::class, 'pay']);
+    });
 
     Route::middleware(['auth:sanctum', 'vendor'])->prefix('vendor')->group(function () {
         Route::post('logout', [VendorAuthController::class, 'destroy']);

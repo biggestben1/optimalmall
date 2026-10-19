@@ -22,7 +22,7 @@ function RoleForm({ user, roles }) {
     );
 }
 
-export default function Index({ users, roles }) {
+export default function Index({ users, roles, permissions = [], modules = {} }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -90,6 +90,26 @@ export default function Index({ users, roles }) {
                     </div>
                     <button type="submit" className="btn-primary w-full" disabled={processing}>Create account</button>
                 </form>
+            </div>
+            <div className="card-surface mt-6 overflow-x-auto p-5">
+                <h2 className="font-display text-lg font-bold">Module access</h2>
+                <p className="mt-1 text-sm text-on-surface-variant">Staff only see the modules listed for their role. The master admin can open every module. Sellers never enter this console.</p>
+                <table className="mt-4 min-w-full text-left text-sm">
+                    <thead className="text-xs uppercase text-on-surface-variant">
+                        <tr>
+                            <th className="px-3 py-2">Role</th>
+                            <th className="px-3 py-2">Modules</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-container">
+                        {permissions.map((row) => (
+                            <tr key={row.role}>
+                                <td className="px-3 py-2 font-semibold">{roles.find((role) => role.value === row.role)?.label ?? row.role}</td>
+                                <td className="px-3 py-2">{row.modules.map((module) => modules[module] ?? module).join(', ')}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </AdminLayout>
     );

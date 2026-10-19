@@ -7,6 +7,7 @@ use App\Enums\VendorStatus;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Services\Vendor\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +19,21 @@ use Inertia\Response;
 
 class VendorController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->string('search')->trim()->toString();
+
         $vendors = Vendor::query()
             ->with('user')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('city', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()
             ->paginate(15)
             ->withQueryString()
@@ -31,13 +43,29 @@ class VendorController extends Controller
                 'email' => $vendor->user?->email ?? $vendor->email,
                 'city' => $vendor->city,
                 'state' => $vendor->state,
+                'status' => $vendor->status->value,
                 'status_label' => $vendor->status->label(),
                 'can_login' => $vendor->user_id !== null,
             ]);
 
         return Inertia::render('Admin/Vendors/Index', [
             'vendors' => $vendors,
+            'filters' => ['search' => $search, 'status' => $request->string('status')->toString()],
+            'statuses' => $this->statusOptions(),
         ]);
+    }
+
+    public function verify(Request $request, Vendor $vendor): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(VendorStatus::class)],
+        ]);
+
+        $vendor->update(['status' => $data['status']]);
+        AuditLogger::record('vendor.verified', $vendor, ['status' => $data['status']], $vendor);
+        $vendor->notifyPortal('Shop status updated', 'Your shop is now '.$vendor->status->label().'.');
+
+        return back()->with('status', 'Seller status updated.');
     }
 
     public function create(): Response

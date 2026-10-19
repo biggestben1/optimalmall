@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ProductApproval;
 use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -19,10 +20,21 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->string('search')->trim()->toString();
+
         $products = Product::query()
-            ->with(['vendor', 'category', 'primaryImage'])
+            ->with(['vendor', 'category', 'brand', 'primaryImage'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('title', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhereHas('vendor', fn ($vendor) => $vendor->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->when($request->filled('approval'), fn ($query) => $query->where('approval_status', $request->string('approval')))
             ->latest()
             ->paginate(15)
             ->withQueryString()
@@ -30,15 +42,21 @@ class ProductController extends Controller
                 'id' => $product->id,
                 'title' => $product->title,
                 'vendor_name' => $product->vendor?->name,
+                'brand_name' => $product->brand?->name,
                 'formatted_price' => $product->formattedPrice(),
                 'stock' => $product->stock,
                 'status_label' => $product->status->label(),
                 'approval' => $product->approval_status?->value,
                 'approval_label' => $product->approval_status?->label() ?? 'Approved',
+                'is_featured' => $product->is_featured,
             ]);
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
+            'filters' => [
+                'search' => $search,
+                'approval' => $request->string('approval')->toString(),
+            ],
         ]);
     }
 
@@ -55,6 +73,7 @@ class ProductController extends Controller
                 'compare_at_price' => '',
                 'stock' => 0,
                 'sku' => '',
+                'brand_id' => null,
                 'status' => ProductStatus::Draft->value,
                 'image_url' => '',
                 'is_featured' => false,
@@ -63,6 +82,7 @@ class ProductController extends Controller
             ],
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
             'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
+            'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'statuses' => $this->statusOptions(),
         ]);
     }
@@ -94,6 +114,14 @@ class ProductController extends Controller
         return back()->with('status', $message);
     }
 
+    public function feature(Product $product): RedirectResponse
+    {
+        $product->update(['is_featured' => ! $product->is_featured]);
+        AuditLogger::record($product->is_featured ? 'product.featured' : 'product.unfeatured', $product, [], $product->vendor);
+
+        return back()->with('status', $product->is_featured ? 'Product featured on the storefront.' : 'Product removed from featured.');
+    }
+
     public function store(Request $request): RedirectResponse
     {
         [$data, $imageUrl] = $this->validated($request);
@@ -113,6 +141,7 @@ class ProductController extends Controller
                 'id' => $product->id,
                 'vendor_id' => $product->vendor_id,
                 'category_id' => $product->category_id,
+                'brand_id' => $product->brand_id,
                 'title' => $product->title,
                 'description' => $product->description,
                 'price' => $product->price,
@@ -127,6 +156,7 @@ class ProductController extends Controller
             ],
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
             'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
+            'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'statuses' => $this->statusOptions(),
         ]);
     }
@@ -158,6 +188,7 @@ class ProductController extends Controller
         $data = $request->validate([
             'vendor_id' => ['required', 'exists:vendors,id'],
             'category_id' => ['required', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'exists:brands,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -176,6 +207,10 @@ class ProductController extends Controller
 
         if (($data['compare_at_price'] ?? '') === '') {
             $data['compare_at_price'] = null;
+        }
+
+        if (($data['brand_id'] ?? '') === '') {
+            $data['brand_id'] = null;
         }
 
         $data['is_featured'] = $request->boolean('is_featured');

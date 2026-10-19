@@ -1,6 +1,18 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import Pagination from '../../../Components/Admin/Pagination';
+
+function ConfirmPayout({ payout }) {
+    const form = useForm({ password: '', provider_reference: '' });
+
+    return (
+        <form className="mt-2 flex flex-wrap justify-end gap-2" onSubmit={(event) => { event.preventDefault(); form.post(route('admin.payouts.confirm', payout.id)); }}>
+            <input className="rounded-lg border px-2 py-1 text-xs" placeholder="Bank reference" value={form.data.provider_reference} onChange={(event) => form.setData('provider_reference', event.target.value)} required />
+            <input className="rounded-lg border px-2 py-1 text-xs" type="password" placeholder="Your password" value={form.data.password} onChange={(event) => form.setData('password', event.target.value)} required />
+            <button className="font-bold text-primary" disabled={form.processing}>Confirm settled</button>
+        </form>
+    );
+}
 
 export default function Index({ payments, settlements, payouts }) {
     return (
@@ -65,7 +77,11 @@ export default function Index({ payments, settlements, payouts }) {
                                         <button
                                             type="button"
                                             className="font-bold text-primary"
-                                            onClick={() => router.patch(route('admin.settlements.update', settlement.id))}
+                                            onClick={() => {
+                                                if (window.confirm('Mark this settlement paid? This cannot be repeated.')) {
+                                                    router.patch(route('admin.settlements.update', settlement.id));
+                                                }
+                                            }}
                                         >
                                             Mark paid
                                         </button>
@@ -99,12 +115,17 @@ export default function Index({ payments, settlements, payouts }) {
                                 <td className="px-4 py-3">{payout.vendor}</td>
                                 <td className="px-4 py-3">{payout.amount}</td>
                                 <td className="px-4 py-3">{payout.status_label}</td>
-                                <td className="px-4 py-3 text-right">
-                                    {(payout.status === 'requested' || payout.status === 'approved') && (
-                                        <button type="button" className="font-bold text-primary" onClick={() => router.patch(route('admin.payouts.release', payout.id))}>
-                                            Release
-                                        </button>
+                                <td className="space-x-3 px-4 py-3 text-right">
+                                    {payout.status === 'requested' && (
+                                        <button type="button" className="font-bold text-primary" onClick={() => { if (window.confirm('Approve this payout? Approval does not pay the seller.')) router.patch(route('admin.payouts.approve', payout.id)); }}>Approve</button>
                                     )}
+                                    {payout.status === 'approved' && (
+                                        <button type="button" className="font-bold text-primary" onClick={() => { if (window.confirm('Start this payout with the bank? It stays unpaid until settlement is confirmed.')) router.patch(route('admin.payouts.release', payout.id)); }}>Start payment</button>
+                                    )}
+                                    {(payout.status === 'requested' || payout.status === 'approved') && (
+                                        <button type="button" className="font-bold text-secondary" onClick={() => { if (window.confirm('Reject this payout?')) router.patch(route('admin.payouts.reject', payout.id)); }}>Reject</button>
+                                    )}
+                                    {payout.status === 'processing' && <ConfirmPayout payout={payout} />}
                                 </td>
                             </tr>
                         ))}

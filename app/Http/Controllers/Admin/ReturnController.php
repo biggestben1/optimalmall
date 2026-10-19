@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ReturnStatus;
 use App\Http\Controllers\Controller;
 use App\Models\OrderReturn;
+use App\Services\Accounting\Books;
+use App\Services\Vendor\AuditLogger;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,7 +49,33 @@ class ReturnController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $next = ReturnStatus::from($data['status']);
+
+        if ($orderReturn->status === ReturnStatus::Refunded) {
+            return back()->with('error', 'This refund was already recorded and cannot be changed.');
+        }
+
+        if ($next === ReturnStatus::Refunded) {
+            $order = $orderReturn->order()->with('returns')->first();
+            $already = (float) $order?->returns
+                ->where('status', ReturnStatus::Refunded)
+                ->sum(fn (OrderReturn $return) => (float) $return->refund_amount);
+
+            if ($order && $already + (float) $orderReturn->refund_amount > (float) $order->total + 0.009) {
+                return back()->with('error', 'This refund would exceed the order total.');
+            }
+
+            AuditLogger::record('refund.recorded', $orderReturn, [
+                'amount' => $orderReturn->refund_amount,
+                'order_id' => $orderReturn->order_id,
+            ]);
+        }
+
         $orderReturn->update($data);
+
+        if ($next === ReturnStatus::Refunded) {
+            app(Books::class)->refundToWallet($orderReturn->fresh());
+        }
 
         return redirect()->route('admin.returns.index')->with('status', 'Return updated.');
     }

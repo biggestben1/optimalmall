@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorBankAccount;
 use App\Models\VendorNotification;
+use App\Services\Accounting\Books;
 use App\Support\Money;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
@@ -31,6 +32,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class Portal
 {
@@ -467,6 +469,8 @@ class Portal
                 'net_label' => Money::format($summary['net']),
                 'available_label' => Money::format($summary['available']),
                 'unverified_label' => Money::format($summary['unverified']),
+                'paid_label' => Money::format((float) $this->shop->payouts()->where('status', PayoutStatus::Paid)->sum('amount')),
+                'wallet_label' => Money::format(app(Books::class)->vendorWallet($this->shop)->balance()),
             ],
             'lines' => $lines,
             'rate' => (float) ($this->shop->commission_rate ?? config('marketplace.commission_rate')),
@@ -532,6 +536,13 @@ class Portal
     public function requestPayout(array $input): Payout
     {
         $this->assertActive();
+
+        if (app(Books::class)->vendorWallet($this->shop)->isFrozen()) {
+            throw ValidationException::withMessages([
+                'amount' => 'Payouts are paused while this seller wallet is frozen.',
+            ]);
+        }
+
         $available = $this->earnings()->summary()['available'];
         $data = validator($input, [
             'amount' => ['required', 'numeric', 'min:1', 'max:'.$available],

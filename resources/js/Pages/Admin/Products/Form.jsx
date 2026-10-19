@@ -2,11 +2,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import InputError from '../../../Components/Admin/InputError';
 
-export default function Form({ product, vendors, categories, statuses }) {
+export default function Form({ product, vendors, categories, brands = [], statuses }) {
     const editing = Boolean(product?.id);
     const { data, setData, post, put, processing, errors } = useForm({
         vendor_id: product?.vendor_id ?? vendors[0]?.id ?? '',
         category_id: product?.category_id ?? categories[0]?.id ?? '',
+        brand_id: product?.brand_id ?? '',
         title: product?.title ?? '',
         description: product?.description ?? '',
         price: product?.price ?? '',
@@ -58,6 +59,16 @@ export default function Form({ product, vendors, categories, statuses }) {
                         </select>
                         <InputError message={errors.category_id} />
                     </div>
+                </div>
+                <div>
+                    <label className="mb-1 block text-xs font-bold uppercase">Brand</label>
+                    <select value={data.brand_id} onChange={(e) => setData('brand_id', e.target.value)} className="w-full rounded-xl border-outline-variant">
+                        <option value="">No brand</option>
+                        {brands.map((brand) => (
+                            <option key={brand.id} value={brand.id}>{brand.name}</option>
+                        ))}
+                    </select>
+                    <InputError message={errors.brand_id} />
                 </div>
 
                 <div>

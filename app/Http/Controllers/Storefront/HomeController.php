@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\MarketplaceSettings;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +50,10 @@ class HomeController extends Controller
             'featured' => Product::query()->active()->with(['primaryImage', 'vendor', 'images'])->where('is_featured', true)->latest()->take(8)->get()->map($productMap),
             'trending' => Product::query()->active()->with(['primaryImage', 'vendor', 'images'])->where('is_trending', true)->latest()->take(8)->get()->map($productMap),
             'bestSellers' => Product::query()->active()->with(['primaryImage', 'vendor', 'images'])->where('is_best_seller', true)->latest()->take(8)->get()->map($productMap),
+            'seo' => [
+                'title' => (string) MarketplaceSettings::get('seo_title', 'Shop Smart. Live Better.'),
+                'description' => (string) MarketplaceSettings::get('seo_description', ''),
+            ],
         ]);
     }
 }

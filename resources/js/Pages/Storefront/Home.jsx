@@ -22,12 +22,14 @@ function Section({ title, badge, items }) {
     );
 }
 
-export default function Home({ categories, banners, featured, trending, bestSellers }) {
+export default function Home({ categories, banners, featured, trending, bestSellers, seo }) {
     const hero = banners?.[0];
 
     return (
         <StorefrontLayout>
-            <Head title="Shop Smart. Live Better." />
+            <Head title={seo?.title || 'Shop Smart. Live Better.'}>
+                {seo?.description ? <meta name="description" content={seo.description} head-key="description" /> : null}
+            </Head>
             <section className="bg-surface-container px-4 py-2 text-xs lg:px-10">
                 <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">

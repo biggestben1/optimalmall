@@ -13,6 +13,9 @@ export default function AppLayout({ header, children }) {
                         <ApplicationLogo showTagline={false} size="sm" />
                         <Link href={route('dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Dashboard</Link>
                         <Link href={route('profile.edit')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Profile</Link>
+                        {auth.user?.role === 'customer' && (
+                            <Link href={route('wallet.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Wallet</Link>
+                        )}
                         {auth.user?.is_super_admin && (
                             <Link href={route('admin.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Admin</Link>
                         )}

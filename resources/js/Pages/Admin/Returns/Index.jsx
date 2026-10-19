@@ -12,6 +12,9 @@ function StatusForm({ item, statuses }) {
         <form
             onSubmit={(event) => {
                 event.preventDefault();
+                if (data.status === 'refunded' && !window.confirm('Record this refund? A refunded return cannot be changed, and it cannot exceed the order total.')) {
+                    return;
+                }
                 patch(route('admin.returns.update', item.id));
             }}
             className="flex flex-wrap items-center justify-end gap-2"

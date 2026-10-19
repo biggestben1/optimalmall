@@ -114,7 +114,7 @@ class Earnings
         $net = round($gross - $commission - $refunds, 2);
         $reserved = round((float) Payout::query()
             ->where('vendor_id', $this->vendor->id)
-            ->whereIn('status', [PayoutStatus::Requested, PayoutStatus::Approved, PayoutStatus::Paid])
+            ->whereIn('status', [PayoutStatus::Requested, PayoutStatus::Approved, PayoutStatus::Processing, PayoutStatus::Paid])
             ->sum('amount'), 2);
 
         return [
@@ -136,7 +136,7 @@ class Earnings
         $other = (float) Payout::query()
             ->where('vendor_id', $this->vendor->id)
             ->whereKeyNot($payout->id)
-            ->whereIn('status', [PayoutStatus::Requested, PayoutStatus::Approved, PayoutStatus::Paid])
+            ->whereIn('status', [PayoutStatus::Requested, PayoutStatus::Approved, PayoutStatus::Processing, PayoutStatus::Paid])
             ->sum('amount');
 
         return $net + 0.009 >= $other + (float) $payout->amount;

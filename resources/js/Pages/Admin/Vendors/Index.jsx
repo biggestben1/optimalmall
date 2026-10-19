@@ -1,16 +1,23 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import DeleteButton from '../../../Components/Admin/DeleteButton';
+import FilterBar from '../../../Components/Admin/FilterBar';
 import Pagination from '../../../Components/Admin/Pagination';
 
-export default function Index({ vendors }) {
+export default function Index({ vendors, filters, statuses }) {
     return (
         <AdminLayout title="Sellers" heading="Sellers">
             <Head title="Sellers" />
             <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm text-on-surface-variant">Seller shops and the email each one uses to sign in.</p>
+                <p className="text-sm text-on-surface-variant">Verify a shop before it can publish. Sellers stay limited to their own records.</p>
                 <Link href={route('admin.vendors.create')} className="btn-primary">Add seller</Link>
             </div>
+            <FilterBar action={route('admin.vendors.index')} filters={filters} placeholder="Shop, email, or city">
+                <select name="status" defaultValue={filters.status ?? ''} className="rounded-xl border-outline-variant text-sm">
+                    <option value="">Any status</option>
+                    {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                </select>
+            </FilterBar>
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-surface-container text-xs uppercase text-on-surface-variant">
@@ -32,6 +39,12 @@ export default function Index({ vendors }) {
                                 <td className="px-4 py-3">{[vendor.city, vendor.state].filter(Boolean).join(', ') || '—'}</td>
                                 <td className="px-4 py-3">{vendor.status_label}</td>
                                 <td className="space-x-3 px-4 py-3 text-right">
+                                    {vendor.status !== 'active' && (
+                                        <button type="button" className="font-bold text-primary" onClick={() => { if (window.confirm('Activate this seller?')) router.patch(route('admin.vendors.verify', vendor.id), { status: 'active' }); }}>Activate</button>
+                                    )}
+                                    {vendor.status === 'active' && (
+                                        <button type="button" className="font-bold text-secondary" onClick={() => { if (window.confirm('Suspend this seller?')) router.patch(route('admin.vendors.verify', vendor.id), { status: 'suspended' }); }}>Suspend</button>
+                                    )}
                                     <Link href={route('admin.vendors.edit', vendor.id)} className="font-bold text-primary">Edit</Link>
                                     <DeleteButton href={route('admin.vendors.destroy', vendor.id)} confirmMessage="Delete this vendor?" />
                                 </td>

@@ -3,7 +3,7 @@ import ApplicationLogo from '../Components/ApplicationLogo';
 import HeaderSearch from '../Components/HeaderSearch';
 
 export default function StorefrontLayout({ children }) {
-    const { auth, navCategories = [], flash } = usePage().props;
+    const { auth, navCategories = [], flash, cart } = usePage().props;
     const { url } = usePage();
     const firstName = auth.user?.name?.split(' ')[0] || 'Guest';
     const query = url.includes('?') ? url.split('?')[1] : '';
@@ -64,13 +64,16 @@ export default function StorefrontLayout({ children }) {
                         <button type="button" className="relative p-1 text-on-surface-variant opacity-60" title="Wishlist coming in Phase 2" disabled>
                             <span className="material-symbols-outlined text-[24px]">favorite</span>
                         </button>
-                        <button type="button" className="flex items-center gap-2 rounded-xl bg-primary-container px-3 py-1.5 text-on-primary opacity-80" title="Cart coming in Phase 2" disabled>
+                        <Link href={route('cart.index')} className="relative flex items-center gap-2 rounded-xl bg-primary-container px-3 py-1.5 text-on-primary">
                             <span className="material-symbols-outlined text-[22px]">shopping_bag</span>
+                            {cart?.count > 0 && (
+                                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-bold text-on-secondary">{cart.count}</span>
+                            )}
                             <div className="hidden text-left leading-tight sm:block">
-                                <div className="text-[10px] text-primary-fixed">₦0</div>
+                                <div className="text-[10px] text-primary-fixed">{cart?.total_label ?? '₦0'}</div>
                                 <div className="text-sm font-bold">Cart</div>
                             </div>
-                        </button>
+                        </Link>
                     </div>
                 </div>
 

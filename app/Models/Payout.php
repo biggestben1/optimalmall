@@ -16,6 +16,12 @@ class Payout extends Model
         'status',
         'note',
         'rejection_reason',
+        'approved_by',
+        'approved_at',
+        'initiated_by',
+        'initiated_at',
+        'confirmed_by',
+        'provider_reference',
         'paid_at',
     ];
 
@@ -24,6 +30,8 @@ class Payout extends Model
         return [
             'amount' => 'decimal:2',
             'status' => PayoutStatus::class,
+            'approved_at' => 'datetime',
+            'initiated_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
     }

@@ -1,11 +1,13 @@
 import { Head } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import FilterBar from '../../../Components/Admin/FilterBar';
 import Pagination from '../../../Components/Admin/Pagination';
 
-export default function Index({ customers }) {
+export default function Index({ customers, filters }) {
     return (
         <AdminLayout title="Users" heading="Customers">
             <Head title="Customers" />
+            <FilterBar action={route('admin.customers.index')} filters={filters} placeholder="Name or email" />
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-sm">
                     <thead className="bg-surface-container text-xs uppercase text-on-surface-variant">

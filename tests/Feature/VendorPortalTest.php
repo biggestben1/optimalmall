@@ -277,8 +277,17 @@ it('releases a payout only when verified payments cover it', function () {
     $this->actingAs($seller)->post(route('vendor.payouts.store'), ['amount' => 2000]);
     $payout = $vendor->payouts()->first();
 
+    $this->actingAs($admin)->patch(route('admin.payouts.approve', $payout))->assertRedirect();
+    expect($payout->fresh()->status)->toBe(PayoutStatus::Approved);
+
     $this->actingAs($admin)->patch(route('admin.payouts.release', $payout))
         ->assertRedirect(route('admin.payments.index'));
+    expect($payout->fresh()->status)->toBe(PayoutStatus::Processing);
+
+    $this->actingAs($admin)->post(route('admin.payouts.confirm', $payout), [
+        'password' => 'password',
+        'provider_reference' => 'BANK-1',
+    ])->assertRedirect();
 
     expect($payout->fresh()->status)->toBe(PayoutStatus::Paid);
 });

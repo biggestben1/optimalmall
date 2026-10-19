@@ -1,12 +1,21 @@
 import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import FilterBar from '../../../Components/Admin/FilterBar';
 import Pagination from '../../../Components/Admin/Pagination';
 
-export default function Index({ orders }) {
+export default function Index({ orders, filters, statuses }) {
     return (
         <AdminLayout title="Sales" heading="Orders">
             <Head title="Orders" />
-            <p className="mb-4 text-sm text-on-surface-variant">Customer orders placed on OptimalMall.</p>
+            <p className="mb-4 text-sm text-on-surface-variant">Every marketplace order, including fulfilment status on the order page.</p>
+            <FilterBar action={route('admin.orders.index')} filters={filters} placeholder="Order number, customer, or email">
+                <select name="status" defaultValue={filters.status ?? ''} className="rounded-xl border-outline-variant text-sm">
+                    <option value="">Any status</option>
+                    {statuses.map((status) => <option key={status.value} value={status.value}>{status.label}</option>)}
+                </select>
+                <input type="date" name="from" defaultValue={filters.from ?? ''} className="rounded-xl border-outline-variant text-sm" />
+                <input type="date" name="to" defaultValue={filters.to ?? ''} className="rounded-xl border-outline-variant text-sm" />
+            </FilterBar>
             <div className="card-surface overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-surface-container text-xs uppercase text-on-surface-variant">

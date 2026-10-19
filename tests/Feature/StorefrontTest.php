@@ -85,6 +85,48 @@ it('shows an active product detail page', function () {
         );
 });
 
+it('adds an in-stock product to the cart and keeps a second add within stock', function () {
+    $product = Product::factory()->create([
+        'title' => 'Cart Phone',
+        'status' => ProductStatus::Active,
+        'price' => 1500,
+        'stock' => 3,
+    ]);
+
+    $this->post(route('cart.store', $product), ['quantity' => 2])
+        ->assertRedirect()
+        ->assertSessionHas('status');
+
+    $this->get(route('cart.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Storefront/Cart')
+            ->where('summary.count', 2)
+            ->where('lines.0.title', 'Cart Phone')
+            ->where('lines.0.quantity', 2)
+        );
+
+    $this->post(route('cart.store', $product), ['quantity' => 2])
+        ->assertSessionHasErrors('quantity');
+
+    $this->patch(route('cart.update', $product), ['quantity' => 1])->assertRedirect();
+    $this->delete(route('cart.destroy', $product))->assertRedirect();
+
+    $this->get(route('cart.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('summary.count', 0)->where('lines', []));
+});
+
+it('refuses to add a draft or sold-out product', function () {
+    $draft = Product::factory()->draft()->create();
+    $soldOut = Product::factory()->create([
+        'status' => ProductStatus::Active,
+        'stock' => 0,
+    ]);
+
+    $this->post(route('cart.store', $draft), ['quantity' => 1])->assertNotFound();
+    $this->post(route('cart.store', $soldOut), ['quantity' => 1])->assertSessionHasErrors('quantity');
+});
+
 it('hides draft products from the storefront', function () {
     $product = Product::factory()->draft()->create([
         'title' => 'Hidden Draft Product',
