@@ -30,7 +30,7 @@ export default function Dashboard({ stats }) {
             <div className="card-surface mt-6 p-6">
                 <h2 className="font-display text-lg font-bold">Catalogue control</h2>
                 <p className="mt-2 text-sm text-on-surface-variant">
-                    Manage products, categories, vendors, customers and homepage banners. Orders, payments and settlements arrive in later phases.
+                    Manage the catalogue, orders, payments, coupons, reviews, returns, and staff roles from this console.
                 </p>
             </div>
         </AdminLayout>

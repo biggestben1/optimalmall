@@ -9,17 +9,14 @@ const navLinks = [
     { route: 'admin.vendors.index', label: 'Vendors', icon: 'storefront', match: 'admin.vendors.*' },
     { route: 'admin.customers.index', label: 'Customers', icon: 'group', match: 'admin.customers.*' },
     { route: 'admin.banners.index', label: 'Banners', icon: 'image', match: 'admin.banners.*' },
-];
-
-const comingSoon = [
-    'Orders',
-    'Payments & Settlements',
-    'Coupons',
-    'Advertising',
-    'Reviews',
-    'Returns',
-    'Reports',
-    'Roles & Security',
+    { route: 'admin.orders.index', label: 'Orders', icon: 'receipt_long', match: 'admin.orders.*' },
+    { route: 'admin.payments.index', label: 'Payments & Settlements', icon: 'payments', match: 'admin.payments.*' },
+    { route: 'admin.coupons.index', label: 'Coupons', icon: 'sell', match: 'admin.coupons.*' },
+    { route: 'admin.advertisements.index', label: 'Advertising', icon: 'campaign', match: 'admin.advertisements.*' },
+    { route: 'admin.reviews.index', label: 'Reviews', icon: 'reviews', match: 'admin.reviews.*' },
+    { route: 'admin.returns.index', label: 'Returns', icon: 'assignment_return', match: 'admin.returns.*' },
+    { route: 'admin.reports', label: 'Reports', icon: 'monitoring', match: 'admin.reports' },
+    { route: 'admin.roles.index', label: 'Roles & Security', icon: 'admin_panel_settings', match: 'admin.roles.*' },
 ];
 
 const sidebarStorageKey = 'admin-sidebar';
@@ -78,7 +75,7 @@ export default function AdminLayout({ title, heading, children }) {
                     <div className="mt-1 pl-10 text-xs text-primary-fixed">Admin Console</div>
                 </div>
 
-                <nav className="space-y-1 p-3 text-sm">
+                <nav className="max-h-[calc(100vh-7rem)] space-y-1 overflow-y-auto p-3 text-sm">
                     {navLinks.map((link) => (
                         <Link
                             key={link.route}
@@ -95,16 +92,6 @@ export default function AdminLayout({ title, heading, children }) {
                             <span className="material-symbols-outlined text-[18px]">{link.icon}</span>
                             {link.label}
                         </Link>
-                    ))}
-
-                    <div className="px-3 pt-4 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">
-                        Coming soon
-                    </div>
-                    {comingSoon.map((label) => (
-                        <div key={label} className="flex items-center gap-2 rounded-lg px-3 py-2 text-primary-fixed/70">
-                            <span className="material-symbols-outlined text-[18px]">lock</span>
-                            {label}
-                        </div>
                     ))}
 
                     <Link

@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             VendorSeeder::class,
             ProductSeeder::class,
             BannerSeeder::class,
+            CommerceSeeder::class,
         ]);
     }
 }

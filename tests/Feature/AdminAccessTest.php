@@ -51,6 +51,38 @@ it('allows super admins to browse admin catalogue modules', function () {
     $this->actingAs($admin)->get(route('admin.banners.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Admin/Banners/Index'));
+
+    $this->actingAs($admin)->get(route('admin.orders.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Orders/Index'));
+
+    $this->actingAs($admin)->get(route('admin.payments.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Payments/Index'));
+
+    $this->actingAs($admin)->get(route('admin.coupons.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Coupons/Index'));
+
+    $this->actingAs($admin)->get(route('admin.advertisements.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Advertising/Index'));
+
+    $this->actingAs($admin)->get(route('admin.reviews.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Reviews/Index'));
+
+    $this->actingAs($admin)->get(route('admin.returns.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Returns/Index'));
+
+    $this->actingAs($admin)->get(route('admin.reports'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Reports/Index'));
+
+    $this->actingAs($admin)->get(route('admin.roles.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Roles/Index'));
 });
 
 it('allows super admins to create a product', function () {

@@ -18,7 +18,7 @@ class VendorSeeder extends Seeder
             ['name' => 'FreshMart Nigeria', 'city' => 'Port Harcourt', 'state' => 'Rivers'],
         ];
 
-        foreach ($vendors as $vendor) {
+        foreach ($vendors as $index => $vendor) {
             Vendor::query()->create([
                 'name' => $vendor['name'],
                 'slug' => Str::slug($vendor['name']),
@@ -26,7 +26,7 @@ class VendorSeeder extends Seeder
                 'status' => VendorStatus::Active,
                 'city' => $vendor['city'],
                 'state' => $vendor['state'],
-                'phone' => '080'.fake()->numerify('########'),
+                'phone' => '0803000000'.($index + 1),
                 'email' => Str::slug($vendor['name']).'@vendors.optimalmall.ng',
             ]);
         }

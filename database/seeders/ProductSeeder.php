@@ -45,7 +45,7 @@ class ProductSeeder extends Seeder
                 'description' => $item['title'].' available on OptimalMall with escrow protection and nationwide delivery options.',
                 'price' => $item['price'],
                 'compare_at_price' => $item['price'] * 1.15,
-                'stock' => fake()->numberBetween(5, 80),
+                'stock' => 12 + ($index * 4),
                 'sku' => 'OM-'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
                 'status' => ProductStatus::Active,
                 'is_featured' => (bool) ($item['featured'] ?? false),
