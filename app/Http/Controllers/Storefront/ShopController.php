@@ -24,6 +24,8 @@ class ShopController extends Controller
                 'slug' => $vendor->slug,
                 'city' => $vendor->city,
                 'state' => $vendor->state,
+                'description' => $vendor->description,
+                'logo_url' => is_string($vendor->logo_path) && str_starts_with($vendor->logo_path, 'http') ? $vendor->logo_path : null,
                 'products' => $vendor->products_count,
             ]);
 
