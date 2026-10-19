@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Enums\CouponType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Coupon extends Model
 {
     protected $fillable = [
+        'vendor_id',
         'code',
         'type',
         'value',
@@ -31,5 +33,10 @@ class Coupon extends Model
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 }

@@ -30,6 +30,10 @@ class HandleInertiaRequests extends Middleware
                     'is_super_admin' => $user->isSuperAdmin(),
                     'is_vendor' => $user->isVendor(),
                     'shop_name' => $user->isVendor() ? $user->vendor?->name : null,
+                    'shop_status' => $user->isVendor() ? $user->vendor?->status?->value : null,
+                    'unread_notifications' => $user->isVendor()
+                        ? (int) $user->vendor?->notifications()->whereNull('read_at')->count()
+                        : 0,
                 ] : null,
             ],
             'flash' => [

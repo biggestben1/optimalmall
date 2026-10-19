@@ -2,11 +2,35 @@ import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import ApplicationLogo from '../Components/ApplicationLogo';
 
-const navLinks = [
-    { route: 'vendor.dashboard', label: 'Dashboard', icon: 'dashboard', match: 'vendor.dashboard' },
-    { route: 'vendor.products.index', label: 'Products', icon: 'inventory_2', matches: ['vendor.products.index', 'vendor.products.edit'] },
-    { route: 'vendor.products.create', label: 'Add product', icon: 'add_box', match: 'vendor.products.create' },
-    { route: 'vendor.reports', label: 'Sales report', icon: 'monitoring', match: 'vendor.reports' },
+const navGroups = [
+    {
+        label: 'Shop',
+        links: [
+            { route: 'vendor.dashboard', label: 'Dashboard', icon: 'dashboard', match: 'vendor.dashboard' },
+            { route: 'vendor.store.edit', label: 'Store profile', icon: 'storefront', match: 'vendor.store.*' },
+            { route: 'vendor.products.index', label: 'Products', icon: 'inventory_2', matches: ['vendor.products.*'] },
+            { route: 'vendor.inventory.index', label: 'Inventory', icon: 'warehouse', match: 'vendor.inventory.*' },
+        ],
+    },
+    {
+        label: 'Sales',
+        links: [
+            { route: 'vendor.orders.index', label: 'Orders', icon: 'local_shipping', matches: ['vendor.orders.*'] },
+            { route: 'vendor.finance.index', label: 'Earnings', icon: 'account_balance_wallet', match: 'vendor.finance.*' },
+            { route: 'vendor.payouts.index', label: 'Payouts', icon: 'payments', match: 'vendor.payouts.*' },
+            { route: 'vendor.promotions.index', label: 'Promotions', icon: 'sell', matches: ['vendor.promotions.*'] },
+            { route: 'vendor.reviews.index', label: 'Reviews', icon: 'reviews', match: 'vendor.reviews.*' },
+        ],
+    },
+    {
+        label: 'Account',
+        links: [
+            { route: 'vendor.tickets.index', label: 'Messages', icon: 'forum', matches: ['vendor.tickets.*'] },
+            { route: 'vendor.notifications.index', label: 'Notifications', icon: 'notifications', match: 'vendor.notifications.*' },
+            { route: 'vendor.reports', label: 'Reports', icon: 'monitoring', match: 'vendor.reports' },
+            { route: 'vendor.settings.edit', label: 'Settings', icon: 'manage_accounts', match: 'vendor.settings.*' },
+        ],
+    },
 ];
 
 const sidebarStorageKey = 'vendor-sidebar';
@@ -70,23 +94,33 @@ export default function VendorLayout({ title, heading, children }) {
                     </div>
                 </div>
 
-                <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.route}
-                            href={route(link.route)}
-                            className={`flex items-center gap-2 rounded-lg px-3 py-2.5 ${
-                                isActive(link) ? 'bg-secondary-container font-bold text-on-secondary' : 'hover:bg-white/10'
-                            }`}
-                            onClick={() => {
-                                if (!isDesktop()) {
-                                    setSidebar(false, { persist: false });
-                                }
-                            }}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">{link.icon}</span>
-                            {link.label}
-                        </Link>
+                <nav className="flex-1 space-y-4 overflow-y-auto p-3 text-sm">
+                    {navGroups.map((group) => (
+                        <div key={group.label}>
+                            <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wide text-primary-fixed">{group.label}</div>
+                            <div className="space-y-1">
+                                {group.links.map((link) => (
+                                    <Link
+                                        key={link.route}
+                                        href={route(link.route)}
+                                        className={`flex items-center gap-2 rounded-lg px-3 py-2.5 ${
+                                            isActive(link) ? 'bg-secondary-container font-bold text-on-secondary' : 'hover:bg-white/10'
+                                        }`}
+                                        onClick={() => {
+                                            if (!isDesktop()) {
+                                                setSidebar(false, { persist: false });
+                                            }
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">{link.icon}</span>
+                                        <span className="flex-1">{link.label}</span>
+                                        {link.route === 'vendor.notifications.index' && auth.user?.unread_notifications > 0 && (
+                                            <span className="rounded-full bg-white px-1.5 text-[10px] font-bold text-primary">{auth.user.unread_notifications}</span>
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </nav>
 
@@ -128,6 +162,11 @@ export default function VendorLayout({ title, heading, children }) {
                 </header>
 
                 <main className="p-4 sm:p-6">
+                    {auth.user?.is_vendor && auth.user?.shop_status && auth.user.shop_status !== 'active' && (
+                        <div className="mb-4 rounded-xl bg-secondary-container/15 px-4 py-3 text-sm font-semibold text-secondary">
+                            This shop is {auth.user.shop_status}. An admin must activate it before products can be published or payouts requested.
+                        </div>
+                    )}
                     {flash?.status && (
                         <div className="mb-4 rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">
                             {flash.status}

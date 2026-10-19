@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProductApproval;
 use App\Enums\ProductStatus;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +28,7 @@ class Product extends Model
         'stock',
         'sku',
         'status',
+        'approval_status',
         'is_featured',
         'is_trending',
         'is_best_seller',
@@ -39,6 +41,7 @@ class Product extends Model
             'compare_at_price' => 'decimal:2',
             'stock' => 'integer',
             'status' => ProductStatus::class,
+            'approval_status' => ProductApproval::class,
             'is_featured' => 'boolean',
             'is_trending' => 'boolean',
             'is_best_seller' => 'boolean',
@@ -58,6 +61,11 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function primaryImage(): HasOne

@@ -2,7 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import Pagination from '../../../Components/Admin/Pagination';
 
-export default function Index({ payments, settlements }) {
+export default function Index({ payments, settlements, payouts }) {
     return (
         <AdminLayout title="Finance" heading="Payments & Settlements">
             <Head title="Payments & Settlements" />
@@ -77,6 +77,41 @@ export default function Index({ payments, settlements }) {
                 </table>
             </div>
             <Pagination links={settlements.links} />
+
+            <h2 className="mb-3 mt-8 font-display text-lg font-bold">Payout requests</h2>
+            <div className="card-surface overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                    <thead className="bg-surface-container text-xs uppercase text-on-surface-variant">
+                        <tr>
+                            <th className="px-4 py-3">Reference</th>
+                            <th className="px-4 py-3">Seller</th>
+                            <th className="px-4 py-3">Amount</th>
+                            <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3" />
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-container">
+                        {(payouts?.data ?? []).length === 0 ? (
+                            <tr><td colSpan={5} className="px-4 py-8 text-center text-on-surface-variant">No payout requests yet.</td></tr>
+                        ) : payouts.data.map((payout) => (
+                            <tr key={payout.id}>
+                                <td className="px-4 py-3 font-semibold">{payout.reference}</td>
+                                <td className="px-4 py-3">{payout.vendor}</td>
+                                <td className="px-4 py-3">{payout.amount}</td>
+                                <td className="px-4 py-3">{payout.status_label}</td>
+                                <td className="px-4 py-3 text-right">
+                                    {(payout.status === 'requested' || payout.status === 'approved') && (
+                                        <button type="button" className="font-bold text-primary" onClick={() => router.patch(route('admin.payouts.release', payout.id))}>
+                                            Release
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            {payouts && <Pagination links={payouts.links} />}
         </AdminLayout>
     );
 }

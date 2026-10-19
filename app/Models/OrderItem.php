@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FulfilmentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +16,13 @@ class OrderItem extends Model
         'quantity',
         'unit_price',
         'line_total',
+        'fulfilment_status',
+        'carrier',
+        'tracking_number',
+        'shipped_at',
+        'delivered_at',
+        'commission_rate',
+        'commission_amount',
     ];
 
     protected function casts(): array
@@ -23,6 +31,11 @@ class OrderItem extends Model
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
             'line_total' => 'decimal:2',
+            'fulfilment_status' => FulfilmentStatus::class,
+            'shipped_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'commission_rate' => 'decimal:2',
+            'commission_amount' => 'decimal:2',
         ];
     }
 

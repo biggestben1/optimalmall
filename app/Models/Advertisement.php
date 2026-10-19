@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Advertisement extends Model
 {
     protected $fillable = [
+        'vendor_id',
         'title',
         'placement',
         'image_path',
@@ -25,5 +27,10 @@ class Advertisement extends Model
             'ends_at' => 'date',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 }

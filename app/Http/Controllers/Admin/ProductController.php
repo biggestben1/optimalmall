@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ProductApproval;
 use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Vendor;
+use App\Services\Vendor\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -31,6 +33,8 @@ class ProductController extends Controller
                 'formatted_price' => $product->formattedPrice(),
                 'stock' => $product->stock,
                 'status_label' => $product->status->label(),
+                'approval' => $product->approval_status?->value,
+                'approval_label' => $product->approval_status?->label() ?? 'Approved',
             ]);
 
         return Inertia::render('Admin/Products/Index', [
@@ -61,6 +65,33 @@ class ProductController extends Controller
             'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
             'statuses' => $this->statusOptions(),
         ]);
+    }
+
+    public function approval(Request $request, Product $product): RedirectResponse
+    {
+        $decision = $request->validate([
+            'decision' => ['required', Rule::in(['approve', 'reject'])],
+        ])['decision'];
+
+        if ($decision === 'approve') {
+            $product->update([
+                'status' => ProductStatus::Active,
+                'approval_status' => ProductApproval::Approved,
+            ]);
+            $product->vendor?->notifyPortal('Product approved', $product->title.' is now live on OptimalMall.');
+            AuditLogger::record('product.approved', $product, [], $product->vendor, $request->user());
+            $message = 'Product approved and published.';
+        } else {
+            $product->update([
+                'status' => ProductStatus::Draft,
+                'approval_status' => ProductApproval::Rejected,
+            ]);
+            $product->vendor?->notifyPortal('Product rejected', $product->title.' was not approved.');
+            AuditLogger::record('product.rejected', $product, [], $product->vendor, $request->user());
+            $message = 'Product rejected.';
+        }
+
+        return back()->with('status', $message);
     }
 
     public function store(Request $request): RedirectResponse

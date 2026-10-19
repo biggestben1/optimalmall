@@ -14,6 +14,7 @@ class Review extends Model
         'author_name',
         'rating',
         'body',
+        'vendor_reply',
         'status',
     ];
 

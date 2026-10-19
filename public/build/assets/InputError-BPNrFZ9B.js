@@ -1,0 +1,1 @@
+import{t as e}from"./app-CoCjkbWK.js";var t=e();function n({message:e,className:n=``}){return e?(0,t.jsx)(`div`,{className:`mt-1 text-sm text-red-600 ${n}`,children:e}):null}export{n as t};

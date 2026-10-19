@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import VendorLayout from '../../../Layouts/VendorLayout';
 import InputError from '../../../Components/Admin/InputError';
 
-export default function Form({ product, categories, statuses }) {
+export default function Form({ product, categories, statuses, approval_required }) {
     const editing = Boolean(product?.id);
     const { data, setData, post, put, processing, errors } = useForm({
         category_id: product?.category_id ?? categories[0]?.id ?? '',
@@ -12,8 +12,9 @@ export default function Form({ product, categories, statuses }) {
         compare_at_price: product?.compare_at_price ?? '',
         stock: product?.stock ?? 0,
         sku: product?.sku ?? '',
-        status: product?.status ?? 'active',
+        status: product?.status ?? 'draft',
         image_url: product?.image_url ?? '',
+        image_urls: product?.image_urls ?? '',
     });
 
     const submit = (event) => {
@@ -29,6 +30,12 @@ export default function Form({ product, categories, statuses }) {
         <VendorLayout title="Catalogue" heading={editing ? 'Edit product' : 'Add product'}>
             <Head title={editing ? 'Edit product' : 'Add product'} />
             <form onSubmit={submit} className="card-surface max-w-3xl space-y-4 p-6">
+                {approval_required && (
+                    <p className="rounded-xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+                        Choosing “Submit for approval” keeps the product off the storefront until an admin publishes it.
+                        {product?.approval_label ? ` Current approval: ${product.approval_label}.` : ''}
+                    </p>
+                )}
                 <div>
                     <label className="mb-1 block text-xs font-bold uppercase">Title</label>
                     <input value={data.title} onChange={(e) => setData('title', e.target.value)} className="w-full rounded-xl border-outline-variant" required />
@@ -85,6 +92,11 @@ export default function Form({ product, categories, statuses }) {
                     <label className="mb-1 block text-xs font-bold uppercase">Primary image URL</label>
                     <input value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="https://..." />
                     <InputError message={errors.image_url} />
+                </div>
+                <div>
+                    <label className="mb-1 block text-xs font-bold uppercase">More image URLs</label>
+                    <textarea value={data.image_urls} onChange={(e) => setData('image_urls', e.target.value)} rows={3} className="w-full rounded-xl border-outline-variant" placeholder="One image URL per line" />
+                    <InputError message={errors.image_urls} />
                 </div>
                 <div className="flex gap-3">
                     <button type="submit" className="btn-primary" disabled={processing}>Save product</button>

@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import DeleteButton from '../../../Components/Admin/DeleteButton';
 import Pagination from '../../../Components/Admin/Pagination';
@@ -21,13 +21,14 @@ export default function Index({ products }) {
                             <th className="px-4 py-3">Price</th>
                             <th className="px-4 py-3">Stock</th>
                             <th className="px-4 py-3">Status</th>
+                            <th className="px-4 py-3">Approval</th>
                             <th className="px-4 py-3" />
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-surface-container">
                         {products.data.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant">No products yet.</td>
+                                <td colSpan={7} className="px-4 py-8 text-center text-on-surface-variant">No products yet.</td>
                             </tr>
                         ) : (
                             products.data.map((product) => (
@@ -37,6 +38,14 @@ export default function Index({ products }) {
                                     <td className="px-4 py-3">{product.formatted_price}</td>
                                     <td className="px-4 py-3">{product.stock}</td>
                                     <td className="px-4 py-3">{product.status_label}</td>
+                                    <td className="px-4 py-3">
+                                        {product.approval === 'pending' ? (
+                                            <span className="space-x-2">
+                                                <button type="button" className="font-bold text-primary" onClick={() => router.post(route('admin.products.approval', product.id), { decision: 'approve' })}>Approve</button>
+                                                <button type="button" className="font-bold text-secondary" onClick={() => router.post(route('admin.products.approval', product.id), { decision: 'reject' })}>Reject</button>
+                                            </span>
+                                        ) : product.approval_label}
+                                    </td>
                                     <td className="space-x-3 px-4 py-3 text-right">
                                         <Link href={route('admin.products.edit', product.id)} className="font-bold text-primary">Edit</Link>
                                         <DeleteButton

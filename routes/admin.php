@@ -22,6 +22,7 @@ Route::middleware(['auth', 'super_admin'])
     ->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::resource('products', ProductController::class)->except(['show']);
+        Route::post('products/{product}/approval', [ProductController::class, 'approval'])->name('products.approval');
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('vendors', VendorController::class)->except(['show']);
         Route::resource('banners', BannerController::class)->except(['show']);
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'super_admin'])
         Route::patch('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::patch('settlements/{settlement}', [PaymentController::class, 'update'])->name('settlements.update');
+        Route::patch('payouts/{payout}', [PaymentController::class, 'release'])->name('payouts.release');
         Route::resource('coupons', CouponController::class)->except(['show']);
         Route::resource('advertisements', AdvertisementController::class)->except(['show']);
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
