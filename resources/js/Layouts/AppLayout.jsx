@@ -17,11 +17,7 @@ export default function AppLayout({ header, children }) {
                             <Link href={route('admin.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Admin</Link>
                         )}
                         {auth.user?.is_vendor && (
-                            <>
-                                <Link href={route('vendor.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Seller</Link>
-                                <Link href={route('vendor.products.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Products</Link>
-                                <Link href={route('vendor.reports')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Sales</Link>
-                            </>
+                            <Link href={route('vendor.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Seller</Link>
                         )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">

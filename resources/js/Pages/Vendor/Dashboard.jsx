@@ -1,11 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '../../Layouts/AppLayout';
+import VendorLayout from '../../Layouts/VendorLayout';
 
 export default function Dashboard({ shop, stats, products, orders, settlements }) {
     return (
-        <AppLayout header={<h2 className="font-display text-xl font-bold text-on-surface">Seller dashboard</h2>}>
+        <VendorLayout title="Overview" heading="Dashboard">
             <Head title="Seller dashboard" />
-            <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-8">
+            <div className="space-y-6">
                 {shop === null ? (
                     <div className="card-surface p-6 text-sm text-on-surface-variant">
                         This login is not linked to a shop yet. Ask an OptimalMall admin to connect your vendor account.
@@ -17,11 +17,6 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                             <h1 className="mt-1 font-display text-2xl font-extrabold">{shop.name}</h1>
                             <p className="mt-1 text-sm text-on-surface-variant">{shop.email} · {shop.city}, {shop.state}</p>
                         </div>
-                        <div className="flex flex-wrap gap-3">
-                            <Link href={route('vendor.products.create')} className="btn-primary">Add product</Link>
-                            <Link href={route('vendor.products.index')} className="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold">My products</Link>
-                            <Link href={route('vendor.reports')} className="rounded-xl border border-outline-variant px-4 py-2 text-sm font-bold">Sales report</Link>
-                        </div>
                         <div className="grid gap-4 sm:grid-cols-3">
                             {stats.map((stat) => (
                                 <div key={stat.label} className="card-surface p-5">
@@ -32,7 +27,10 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                         </div>
                         <div className="grid gap-4 lg:grid-cols-2">
                             <section className="card-surface overflow-x-auto">
-                                <h2 className="px-4 pt-4 font-display text-lg font-bold">Products</h2>
+                                <div className="flex items-center justify-between border-b border-surface-container px-4 py-3">
+                                    <h2 className="font-display text-lg font-bold">Products</h2>
+                                    <Link href={route('vendor.products.index')} className="text-sm font-bold text-primary">View all</Link>
+                                </div>
                                 <table className="min-w-full text-left text-sm">
                                     <tbody className="divide-y divide-surface-container">
                                         {products.length === 0 ? (
@@ -48,7 +46,10 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                                 </table>
                             </section>
                             <section className="card-surface overflow-x-auto">
-                                <h2 className="px-4 pt-4 font-display text-lg font-bold">Recent orders</h2>
+                                <div className="flex items-center justify-between border-b border-surface-container px-4 py-3">
+                                    <h2 className="font-display text-lg font-bold">Recent orders</h2>
+                                    <Link href={route('vendor.reports')} className="text-sm font-bold text-primary">Sales report</Link>
+                                </div>
                                 <table className="min-w-full text-left text-sm">
                                     <tbody className="divide-y divide-surface-container">
                                         {orders.length === 0 ? (
@@ -65,7 +66,9 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                             </section>
                         </div>
                         <section className="card-surface overflow-x-auto">
-                            <h2 className="px-4 pt-4 font-display text-lg font-bold">Settlements</h2>
+                            <div className="border-b border-surface-container px-4 py-3">
+                                <h2 className="font-display text-lg font-bold">Settlements</h2>
+                            </div>
                             <table className="min-w-full text-left text-sm">
                                 <tbody className="divide-y divide-surface-container">
                                     {settlements.length === 0 ? (
@@ -82,8 +85,7 @@ export default function Dashboard({ shop, stats, products, orders, settlements }
                         </section>
                     </>
                 )}
-                <Link href={route('home')} className="inline-flex text-sm font-bold text-primary">View storefront</Link>
             </div>
-        </AppLayout>
+        </VendorLayout>
     );
 }

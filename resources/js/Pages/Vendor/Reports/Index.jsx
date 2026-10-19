@@ -1,11 +1,11 @@
 import { Head } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import VendorLayout from '../../../Layouts/VendorLayout';
 
 export default function Index({ shopName, stats, byProduct, recent }) {
     return (
-        <AppLayout header={<h2 className="font-display text-xl font-bold text-on-surface">Sales report</h2>}>
+        <VendorLayout title="Insights" heading="Sales report">
             <Head title="Sales report" />
-            <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-8">
+            <div className="space-y-6">
                 <p className="text-sm text-on-surface-variant">Sales for {shopName}.</p>
                 <div className="grid gap-4 sm:grid-cols-3">
                     {stats.map((stat) => (
@@ -17,7 +17,9 @@ export default function Index({ shopName, stats, byProduct, recent }) {
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">
                     <section className="card-surface overflow-x-auto">
-                        <h2 className="px-4 pt-4 font-display text-lg font-bold">By product</h2>
+                        <div className="border-b border-surface-container px-4 py-3">
+                            <h2 className="font-display text-lg font-bold">By product</h2>
+                        </div>
                         <table className="min-w-full text-left text-sm">
                             <tbody className="divide-y divide-surface-container">
                                 {byProduct.length === 0 ? (
@@ -33,7 +35,9 @@ export default function Index({ shopName, stats, byProduct, recent }) {
                         </table>
                     </section>
                     <section className="card-surface overflow-x-auto">
-                        <h2 className="px-4 pt-4 font-display text-lg font-bold">Recent sales</h2>
+                        <div className="border-b border-surface-container px-4 py-3">
+                            <h2 className="font-display text-lg font-bold">Recent sales</h2>
+                        </div>
                         <table className="min-w-full text-left text-sm">
                             <tbody className="divide-y divide-surface-container">
                                 {recent.length === 0 ? (
@@ -51,6 +55,6 @@ export default function Index({ shopName, stats, byProduct, recent }) {
                     </section>
                 </div>
             </div>
-        </AppLayout>
+        </VendorLayout>
     );
 }

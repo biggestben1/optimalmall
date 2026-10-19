@@ -1,13 +1,13 @@
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import VendorLayout from '../../../Layouts/VendorLayout';
 import DeleteButton from '../../../Components/Admin/DeleteButton';
 import Pagination from '../../../Components/Admin/Pagination';
 
 export default function Index({ products }) {
     return (
-        <AppLayout header={<h2 className="font-display text-xl font-bold text-on-surface">My products</h2>}>
+        <VendorLayout title="Catalogue" heading="Products">
             <Head title="My products" />
-            <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+            <div>
                 <div className="mb-4 flex items-center justify-between">
                     <p className="text-sm text-on-surface-variant">Products listed under your shop.</p>
                     <Link href={route('vendor.products.create')} className="btn-primary">Add product</Link>
@@ -43,6 +43,6 @@ export default function Index({ products }) {
                 </div>
                 <Pagination links={products.links} />
             </div>
-        </AppLayout>
+        </VendorLayout>
     );
 }

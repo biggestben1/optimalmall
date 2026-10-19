@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import AppLayout from '../../../Layouts/AppLayout';
+import VendorLayout from '../../../Layouts/VendorLayout';
 import InputError from '../../../Components/Admin/InputError';
 
 export default function Form({ product, categories, statuses }) {
@@ -26,9 +26,9 @@ export default function Form({ product, categories, statuses }) {
     };
 
     return (
-        <AppLayout header={<h2 className="font-display text-xl font-bold text-on-surface">{editing ? 'Edit product' : 'Add product'}</h2>}>
+        <VendorLayout title="Catalogue" heading={editing ? 'Edit product' : 'Add product'}>
             <Head title={editing ? 'Edit product' : 'Add product'} />
-            <form onSubmit={submit} className="card-surface mx-auto my-8 max-w-3xl space-y-4 p-6">
+            <form onSubmit={submit} className="card-surface max-w-3xl space-y-4 p-6">
                 <div>
                     <label className="mb-1 block text-xs font-bold uppercase">Title</label>
                     <input value={data.title} onChange={(e) => setData('title', e.target.value)} className="w-full rounded-xl border-outline-variant" required />
@@ -91,6 +91,6 @@ export default function Form({ product, categories, statuses }) {
                     <Link href={route('vendor.products.index')} className="px-4 py-2 text-sm font-bold text-on-surface-variant">Cancel</Link>
                 </div>
             </form>
-        </AppLayout>
+        </VendorLayout>
     );
 }
