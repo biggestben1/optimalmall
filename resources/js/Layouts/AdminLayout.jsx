@@ -22,29 +22,55 @@ const comingSoon = [
     'Roles & Security',
 ];
 
+const sidebarStorageKey = 'admin-sidebar';
+
 function isActive(match) {
     return route().current(match);
+}
+
+function isDesktop() {
+    return window.matchMedia('(min-width: 1024px)').matches;
+}
+
+function initialSidebarOpen() {
+    if (typeof window === 'undefined' || !isDesktop()) {
+        return false;
+    }
+
+    return window.localStorage.getItem(sidebarStorageKey) !== 'closed';
 }
 
 export default function AdminLayout({ title, heading, children }) {
     const { auth, flash } = usePage().props;
     const { post } = useForm({});
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
+
+    function setSidebar(open, { persist = isDesktop() } = {}) {
+        setSidebarOpen(open);
+
+        if (persist) {
+            window.localStorage.setItem(sidebarStorageKey, open ? 'open' : 'closed');
+        }
+    }
 
     return (
-        <div className="min-h-screen bg-surface-container-low font-sans text-on-surface antialiased lg:grid lg:grid-cols-[260px_1fr]">
+        <div
+            className={`min-h-screen bg-surface-container-low font-sans text-on-surface antialiased ${
+                sidebarOpen ? 'lg:grid lg:grid-cols-[260px_1fr]' : ''
+            }`}
+        >
             {sidebarOpen && (
                 <button
                     type="button"
                     className="fixed inset-0 z-40 bg-black/40 lg:hidden"
                     aria-label="Close menu"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={() => setSidebar(false, { persist: false })}
                 />
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-[260px] transform bg-primary text-on-primary transition lg:static lg:translate-x-0 ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-50 w-[260px] transform bg-primary text-on-primary transition-transform duration-200 ${
+                    sidebarOpen ? 'translate-x-0 lg:static' : '-translate-x-full lg:hidden'
                 }`}
             >
                 <div className="border-b border-white/10 px-5 py-5">
@@ -60,7 +86,11 @@ export default function AdminLayout({ title, heading, children }) {
                             className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
                                 isActive(link.match) ? 'bg-white/15 font-bold' : 'hover:bg-white/10'
                             }`}
-                            onClick={() => setSidebarOpen(false)}
+                            onClick={() => {
+                                if (!isDesktop()) {
+                                    setSidebar(false, { persist: false });
+                                }
+                            }}
                         >
                             <span className="material-symbols-outlined text-[18px]">{link.icon}</span>
                             {link.label}
@@ -92,11 +122,12 @@ export default function AdminLayout({ title, heading, children }) {
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
-                            className="rounded-lg p-1 hover:bg-surface-container-low lg:hidden"
-                            onClick={() => setSidebarOpen(true)}
-                            aria-label="Open menu"
+                            className="rounded-lg p-1 hover:bg-surface-container-low"
+                            onClick={() => setSidebar(!sidebarOpen)}
+                            aria-expanded={sidebarOpen}
+                            aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
                         >
-                            <span className="material-symbols-outlined">menu</span>
+                            <span className="material-symbols-outlined">{sidebarOpen ? 'menu_open' : 'menu'}</span>
                         </button>
                         <div>
                             {title && <div className="text-[10px] font-bold uppercase tracking-wide text-on-surface-variant">{title}</div>}
