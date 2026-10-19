@@ -70,6 +70,10 @@ class WalletController extends Controller
 
     public function fundWithProof(Request $request, Books $books): RedirectResponse
     {
+        $request->merge([
+            'amount' => str_replace(',', '', (string) $request->input('amount')),
+        ]);
+
         $data = $request->validate([
             'amount' => ['required', 'numeric', 'min:1'],
             'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],

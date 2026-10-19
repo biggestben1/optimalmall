@@ -1,6 +1,53 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '../../../Layouts/AppLayout';
 
+function caretAfterDigits(grouped, count) {
+    if (count <= 0) {
+        return 0;
+    }
+
+    let seen = 0;
+
+    for (let index = 0; index < grouped.length; index += 1) {
+        if (/\d/.test(grouped[index])) {
+            seen += 1;
+        }
+
+        if (seen >= count) {
+            return index + 1;
+        }
+    }
+
+    return grouped.length;
+}
+
+function formatNairaTyping(raw, caret) {
+    const left = raw.slice(0, caret);
+    const dotAt = raw.indexOf('.');
+    const intDigitsBefore = (dotAt === -1 ? left : left.slice(0, Math.min(caret, dotAt))).replace(/\D/g, '').length;
+    const cleaned = raw.replace(/,/g, '').replace(/[^\d.]/g, '');
+    const firstDot = cleaned.indexOf('.');
+    const hasDot = firstDot !== -1;
+    const wholeDigits = (hasDot ? cleaned.slice(0, firstDot) : cleaned).replace(/\D/g, '');
+    const fractionDigits = hasDot ? cleaned.slice(firstDot + 1).replace(/\D/g, '').slice(0, 2) : '';
+
+    if (`${wholeDigits}${fractionDigits}`.replace(/0/g, '') === '') {
+        return { value: '', caret: 0 };
+    }
+
+    const whole = wholeDigits.replace(/^0+(?=\d)/, '') || '0';
+    const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const value = `${grouped}.${fractionDigits.padEnd(2, '0')}`;
+    const fracDigitsBefore = dotAt !== -1 && caret > dotAt
+        ? left.slice(dotAt + 1).replace(/\D/g, '').length
+        : 0;
+    const nextCaret = hasDot && caret > dotAt
+        ? grouped.length + 1 + Math.min(fracDigitsBefore, 2)
+        : caretAfterDigits(grouped, intDigitsBefore);
+
+    return { value, caret: nextCaret };
+}
+
 export default function Index({ balance, frozen, payments_enabled, transactions, orders, funding = [], account }) {
     const fund = useForm({ amount: '', proof: null });
     const pay = useForm({});
@@ -37,10 +84,27 @@ export default function Index({ balance, frozen, payments_enabled, transactions,
                         <div className="text-xs font-bold uppercase tracking-wide text-secondary">Add money</div>
                         <h2 className="font-display text-2xl font-bold">Upload your receipt</h2>
                         <p className="mt-2 text-sm text-on-surface-variant">After you transfer, upload the receipt or screenshot so an accountant can approve it.</p>
-                        <form className="mt-4 space-y-3" onSubmit={(event) => { event.preventDefault(); fund.post(route('wallet.funding.store'), { forceFormData: true }); }}>
+                        <form className="mt-4 space-y-3" onSubmit={(event) => { event.preventDefault(); fund.transform((data) => ({ ...data, amount: String(data.amount).replace(/,/g, '') })); fund.post(route('wallet.funding.store'), { forceFormData: true }); }}>
                             <label className="block text-sm">
                                 <span className="mb-1 block text-on-surface-variant">Amount (₦)</span>
-                                <input className="w-full rounded-xl border border-surface-container px-3 py-2" type="number" min="1" step="0.01" value={fund.data.amount} onChange={(event) => fund.setData('amount', event.target.value)} required disabled={frozen} />
+                                <input
+                                    className="w-full rounded-xl border border-surface-container px-3 py-2"
+                                    inputMode="decimal"
+                                    placeholder="1,000,000.00"
+                                    value={fund.data.amount}
+                                    onChange={(event) => {
+                                        const input = event.target;
+                                        const formatted = formatNairaTyping(input.value, input.selectionStart ?? input.value.length);
+                                        fund.setData('amount', formatted.value);
+                                        requestAnimationFrame(() => {
+                                            if (document.activeElement === input) {
+                                                input.setSelectionRange(formatted.caret, formatted.caret);
+                                            }
+                                        });
+                                    }}
+                                    required
+                                    disabled={frozen}
+                                />
                                 {fund.errors.amount && <span className="text-red-700">{fund.errors.amount}</span>}
                             </label>
                             <label className="block text-sm">
