@@ -109,7 +109,7 @@ class Books
 
         $amount = round($amount, 2);
         $wallet = $this->customerWallet($user);
-        $this->guard($wallet, $amount, 'credit');
+        $this->guard($wallet);
         $reference = $this->reference('WALLET');
 
         return DB::transaction(function () use ($wallet, $amount, $reference) {
@@ -140,7 +140,7 @@ class Books
     {
         $amount = round($amount, 2);
         $wallet = $this->customerWallet($user);
-        $this->guard($wallet, $amount, 'credit');
+        $this->guard($wallet);
         $reference = $this->reference('FUND');
 
         return DB::transaction(function () use ($wallet, $user, $amount, $proofPath, $reference) {
@@ -280,7 +280,7 @@ class Books
 
         $wallet = $this->customerWallet($user);
         $amount = round((float) $order->total, 2);
-        $this->guard($wallet, $amount, 'debit');
+        $this->guard($wallet);
 
         if ($wallet->balance() + 0.009 < $amount) {
             throw ValidationException::withMessages([
@@ -789,38 +789,11 @@ class Books
         ];
     }
 
-    private function guard(Wallet $wallet, float $amount, string $direction): void
+    private function guard(Wallet $wallet): void
     {
         if ($wallet->isFrozen()) {
             throw ValidationException::withMessages([
                 'wallet' => 'This wallet is frozen.',
-            ]);
-        }
-
-        $transactionLimit = (float) MarketplaceSettings::get('wallet_transaction_limit', 500000);
-        $dailyLimit = (float) MarketplaceSettings::get('wallet_daily_limit', 1000000);
-        $maxBalance = (float) MarketplaceSettings::get('wallet_max_balance', 5000000);
-
-        if ($amount > $transactionLimit + 0.009) {
-            throw ValidationException::withMessages([
-                'amount' => 'This amount is above the transaction limit.',
-            ]);
-        }
-
-        $today = (float) $wallet->transactions()
-            ->whereIn('status', ['posted', 'pending'])
-            ->whereDate('created_at', today())
-            ->sum('amount');
-
-        if ($today + $amount > $dailyLimit + 0.009) {
-            throw ValidationException::withMessages([
-                'amount' => 'This amount is above the daily wallet limit.',
-            ]);
-        }
-
-        if ($direction === 'credit' && $wallet->balance() + $amount > $maxBalance + 0.009) {
-            throw ValidationException::withMessages([
-                'amount' => 'This amount is above the wallet balance limit.',
             ]);
         }
     }
