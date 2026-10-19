@@ -12,7 +12,7 @@ export default function Index({ products, filters }) {
                 <p className="text-sm text-on-surface-variant">Listings across every seller. Featured products appear on the storefront home page.</p>
                 <Link href={route('admin.products.create')} className="btn-primary">Add product</Link>
             </div>
-            <FilterBar action={route('admin.products.index')} filters={filters} placeholder="Title, SKU, seller, or brand">
+            <FilterBar action={route('admin.products.index')} filters={filters} placeholder="Title, SKU, seller, brand, or category">
                 <select name="approval" defaultValue={filters.approval ?? ''} className="rounded-xl border-outline-variant text-sm">
                     <option value="">Any approval</option>
                     <option value="pending">Pending</option>

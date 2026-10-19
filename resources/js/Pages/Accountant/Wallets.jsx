@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AccountantLayout from '../../Layouts/AccountantLayout';
 import Pagination from '../../Components/Admin/Pagination';
 
@@ -10,6 +10,20 @@ export default function Wallets({ wallets, filters, account, can_freeze, can_pre
         funding_account_name: account?.name ?? '',
         funding_account_number: account?.number ?? '',
     });
+
+    useEffect(() => {
+        if ((search || '') === (filters.search ?? '')) {
+            return undefined;
+        }
+
+        const timer = window.setTimeout(() => {
+            router.get(route('accountant.wallets'), {
+                search: search.trim() || undefined,
+            }, { preserveState: true, preserveScroll: true, replace: true });
+        }, 300);
+
+        return () => window.clearTimeout(timer);
+    }, [search]);
 
     return (
         <AccountantLayout title="Wallets" heading="Customer and seller wallets" intro="Balances here are money the mall owes. The top-up account below is what customers pay into before a receipt is approved.">

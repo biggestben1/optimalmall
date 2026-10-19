@@ -27,7 +27,7 @@ export default function Index({ products, filters = {} }) {
             <Head title="Inventory" />
             <p className="mb-4 text-sm text-on-surface-variant">Stock belongs to your products. Rows at 5 or below are low.</p>
             <SearchForm action={route('vendor.inventory.index')} values={filters}>
-                <input name="q" defaultValue={filters.q ?? ''} placeholder="Search title or SKU" className="rounded-xl border-outline-variant" />
+                <input name="q" defaultValue={filters.q ?? ''} placeholder="Title, SKU, or category" className="rounded-xl border-outline-variant" />
                 <label className="flex items-center gap-2 text-sm font-semibold">
                     <input type="checkbox" name="low" value="1" defaultChecked={filters.low} />
                     Low stock only

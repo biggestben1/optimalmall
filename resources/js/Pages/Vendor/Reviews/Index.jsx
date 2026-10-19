@@ -21,7 +21,7 @@ export default function Index({ reviews, filters = {} }) {
         <VendorLayout title="Customers" heading="Reviews">
             <Head title="Reviews" />
             <SearchForm action={route('vendor.reviews.index')} values={filters}>
-                <input name="q" defaultValue={filters.q ?? ''} placeholder="Search review text" className="rounded-xl border-outline-variant lg:col-span-2" />
+                <input name="q" defaultValue={filters.q ?? ''} placeholder="Product, reviewer, or review" className="rounded-xl border-outline-variant lg:col-span-2" />
             </SearchForm>
             <div className="space-y-3">
                 {reviews.data.length === 0 ? (

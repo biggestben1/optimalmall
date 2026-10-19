@@ -27,7 +27,9 @@ function visitCatalogue({ search, category, replace = true }) {
 }
 
 export default function HeaderSearch({ className = '' }) {
-    const { url, navCategories = [] } = usePage();
+    const page = usePage();
+    const { url } = page;
+    const navCategories = page.props.navCategories ?? [];
     const initial = queryFromUrl(url);
     const [search, setSearch] = useState(initial.search);
     const [category, setCategory] = useState(initial.category);

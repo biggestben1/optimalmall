@@ -26,7 +26,8 @@ class InventoryController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%");
+                        ->orWhere('sku', 'like', "%{$search}%")
+                        ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($request->boolean('low'), fn ($query) => $query->where('stock', '<=', $threshold))

@@ -1,12 +1,31 @@
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AccountantLayout from '../../Layouts/AccountantLayout';
 import Pagination from '../../Components/Admin/Pagination';
 
 export default function Transactions({ transactions, filters }) {
     const [search, setSearch] = useState(filters.search ?? '');
 
-    const apply = (extra = {}) => router.get(route('accountant.transactions'), { ...filters, search, ...extra }, { preserveState: true, replace: true });
+    const apply = (extra = {}) => {
+        const nextSearch = extra.search ?? search;
+
+        router.get(route('accountant.transactions'), {
+            ...filters,
+            ...extra,
+            search: String(nextSearch || '').trim() || undefined,
+        }, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    useEffect(() => {
+        if ((search || '') === (filters.search ?? '')) {
+            return undefined;
+        }
+
+        const timer = window.setTimeout(() => apply({ search }), 300);
+
+        return () => window.clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
 
     return (
         <AccountantLayout title="Wallet transactions" heading="Wallet transactions" intro="Search movements by reference, or export the current list.">

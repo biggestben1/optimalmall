@@ -9,7 +9,7 @@ export default function Index({ orders, filters = {} }) {
             <Head title="Orders" />
             <p className="mb-4 text-sm text-on-surface-variant">Only orders that include your products are listed.</p>
             <SearchForm action={route('vendor.orders.index')} values={filters}>
-                <input name="q" defaultValue={filters.q ?? ''} placeholder="Order number" className="rounded-xl border-outline-variant" />
+                <input name="q" defaultValue={filters.q ?? ''} placeholder="Order number or customer" className="rounded-xl border-outline-variant" />
                 <select name="status" defaultValue={filters.status ?? ''} className="rounded-xl border-outline-variant">
                     <option value="">Any status</option>
                     {['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map((status) => (

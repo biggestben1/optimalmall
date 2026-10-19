@@ -166,7 +166,8 @@ class Portal
                     $inner->where('title', 'like', $term)
                         ->orWhere('description', 'like', $term)
                         ->orWhere('sku', 'like', $term)
-                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', $term));
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', $term))
+                        ->orWhereHas('brand', fn ($brandQuery) => $brandQuery->where('name', 'like', $term));
                 });
             })
             ->when($status !== '', fn ($query) => $query->where('status', $status))
@@ -316,9 +317,14 @@ class Portal
     public function inventory(string $search = '', bool $lowOnly = false): LengthAwarePaginator
     {
         return $this->shop->products()
-            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
-                $query->where('title', 'like', '%'.$search.'%')->orWhere('sku', 'like', '%'.$search.'%');
-            }))
+            ->when($search !== '', function ($query) use ($search) {
+                $term = '%'.$search.'%';
+                $query->where(function ($query) use ($term) {
+                    $query->where('title', 'like', $term)
+                        ->orWhere('sku', 'like', $term)
+                        ->orWhereHas('category', fn ($category) => $category->where('name', 'like', $term));
+                });
+            })
             ->when($lowOnly, fn ($query) => $query->where('stock', '<=', 5))
             ->orderBy('stock')
             ->paginate(20)
@@ -353,7 +359,14 @@ class Portal
         return Order::query()
             ->whereHas('items', fn ($query) => $query->where('vendor_id', $this->shop->id))
             ->with(['items' => fn ($query) => $query->where('vendor_id', $this->shop->id), 'payments'])
-            ->when($search !== '', fn ($query) => $query->where('number', 'like', '%'.$search.'%'))
+            ->when($search !== '', function ($query) use ($search) {
+                $term = '%'.$search.'%';
+                $query->where(function ($query) use ($term) {
+                    $query->where('number', 'like', $term)
+                        ->orWhere('customer_name', 'like', $term)
+                        ->orWhere('customer_email', 'like', $term);
+                });
+            })
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->latest('placed_at')
             ->paginate(15)
@@ -678,7 +691,14 @@ class Portal
         return Review::query()
             ->whereHas('product', fn ($query) => $query->where('vendor_id', $this->shop->id))
             ->with('product')
-            ->when($search !== '', fn ($query) => $query->where('body', 'like', '%'.$search.'%'))
+            ->when($search !== '', function ($query) use ($search) {
+                $term = '%'.$search.'%';
+                $query->where(function ($query) use ($term) {
+                    $query->where('body', 'like', $term)
+                        ->orWhere('author_name', 'like', $term)
+                        ->orWhereHas('product', fn ($product) => $product->where('title', 'like', $term));
+                });
+            })
             ->latest()
             ->paginate(15)
             ->withQueryString()

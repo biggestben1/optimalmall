@@ -69,7 +69,7 @@ export default function Index({ products, filters = {} }) {
                         type="search"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
-                        placeholder="Search title, SKU, or category..."
+                        placeholder="Search title, SKU, brand, or category..."
                         className="w-full border-0 bg-transparent text-sm placeholder:text-outline focus:ring-0"
                         aria-label="Search products"
                         autoComplete="off"

@@ -140,7 +140,7 @@ class WorkspaceController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->whereHas('user', fn ($user) => $user->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
-                        ->orWhereHas('vendor', fn ($vendor) => $vendor->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('vendor', fn ($vendor) => $vendor->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
                 });
             })
             ->latest()

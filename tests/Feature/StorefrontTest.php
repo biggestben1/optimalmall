@@ -5,6 +5,7 @@ use App\Enums\OrderStatus;
 use App\Enums\ProductStatus;
 use App\Enums\ReturnStatus;
 use App\Enums\ReviewStatus;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Order;
@@ -78,6 +79,32 @@ it('filters catalogue results by search and category', function () {
             ->where('filters.search', 'Samsung')
             ->where('filters.category', $phones->id)
         );
+});
+
+it('finds a product by brand, shop, or sku', function () {
+    $brand = Brand::query()->create([
+        'name' => 'SearchBrand Nova',
+        'slug' => 'searchbrand-nova',
+        'is_active' => true,
+    ]);
+    $vendor = Vendor::factory()->create(['name' => 'SearchShop Lagos']);
+    $product = Product::factory()->create([
+        'vendor_id' => $vendor->id,
+        'brand_id' => $brand->id,
+        'title' => 'Plain Handset',
+        'sku' => 'SRCH-8841',
+        'status' => ProductStatus::Active,
+    ]);
+    ProductImage::factory()->create(['product_id' => $product->id]);
+
+    foreach (['SearchBrand', 'SearchShop', 'SRCH-8841'] as $term) {
+        $this->get(route('products.index', ['search' => $term]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('products.data', 1)
+                ->where('products.data.0.title', 'Plain Handset')
+            );
+    }
 });
 
 it('shows an active product detail page', function () {

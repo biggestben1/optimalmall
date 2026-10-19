@@ -86,7 +86,7 @@ export default function Products({ categories, products, filters }) {
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && apply()}
                                 className="mb-4 w-full rounded-xl border-outline-variant bg-surface-container-low text-sm focus:border-primary focus:ring-primary"
-                                placeholder="Search products..."
+                                placeholder="Title, SKU, brand, shop, or category"
                                 autoComplete="off"
                             />
 

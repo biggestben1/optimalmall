@@ -31,7 +31,8 @@ class ProductController extends Controller
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
                         ->orWhereHas('vendor', fn ($vendor) => $vendor->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('brand', fn ($brand) => $brand->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('category', fn ($category) => $category->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($request->filled('approval'), fn ($query) => $query->where('approval_status', $request->string('approval')))

@@ -45,7 +45,8 @@ class ProductController extends Controller
                         ->orWhere('description', 'like', $term)
                         ->orWhere('sku', 'like', $term)
                         ->orWhereHas('vendor', fn ($vendorQuery) => $vendorQuery->where('name', 'like', $term))
-                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', $term));
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', $term))
+                        ->orWhereHas('brand', fn ($brandQuery) => $brandQuery->where('name', 'like', $term));
                 });
             })
             ->when($categoryId, function ($query) use ($categoryId) {
