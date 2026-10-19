@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '../../../Layouts/AppLayout';
 
-export default function Index({ balance, frozen, payments_enabled, limits, transactions, orders, funding = [], account }) {
+export default function Index({ balance, frozen, payments_enabled, transactions, orders, funding = [], account }) {
     const fund = useForm({ amount: '', proof: null });
     const pay = useForm({});
     const hasAccount = account?.bank || account?.name || account?.number;
@@ -14,16 +14,29 @@ export default function Index({ balance, frozen, payments_enabled, limits, trans
                     <div className="text-xs font-bold uppercase tracking-[0.18em] text-tertiary-fixed">Wallet</div>
                     <p className="mt-2 text-sm text-primary-fixed">Available balance</p>
                     <p className="font-display text-4xl font-extrabold tracking-tight">{balance}</p>
-                    <p className="mt-3 max-w-xl text-sm text-primary-fixed">Limits: {limits.transaction} per transfer, {limits.daily} per day, {limits.balance} maximum balance.</p>
                     {frozen && <p className="mt-3 rounded-xl bg-white/15 px-3 py-2 text-sm">This wallet is frozen. Funding and payments are paused.</p>}
                     <Link href={route('wallet.statement')} className="mt-4 inline-flex text-sm font-bold text-tertiary-fixed">Download statement</Link>
                 </section>
 
-                <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+                    <section className="card-surface p-5">
+                        <div className="text-xs font-bold uppercase tracking-wide text-secondary">Send money to</div>
+                        <h2 className="font-display text-2xl font-bold">Mall account</h2>
+                        <p className="mt-2 text-sm text-on-surface-variant">Transfer the amount into this account, then upload the receipt. The balance changes only after an accountant approves it.</p>
+                        {hasAccount ? (
+                            <dl className="mt-4 space-y-3 text-sm">
+                                {account.bank && <div><dt className="text-on-surface-variant">Bank</dt><dd className="font-semibold">{account.bank}</dd></div>}
+                                {account.name && <div><dt className="text-on-surface-variant">Account name</dt><dd className="font-semibold">{account.name}</dd></div>}
+                                {account.number && <div><dt className="text-on-surface-variant">Account number</dt><dd className="font-display text-3xl font-extrabold tracking-tight text-primary">{account.number}</dd></div>}
+                            </dl>
+                        ) : (
+                            <p className="mt-4 rounded-xl bg-surface-container px-3 py-3 text-sm text-on-surface-variant">The receiving account is not saved yet. An admin adds the bank, account name, and account number in Settings.</p>
+                        )}
+                    </section>
                     <section className="card-surface p-5">
                         <div className="text-xs font-bold uppercase tracking-wide text-secondary">Add money</div>
                         <h2 className="font-display text-2xl font-bold">Upload your receipt</h2>
-                        <p className="mt-2 text-sm text-on-surface-variant">Transfer the amount, then upload the receipt or screenshot. An accountant checks it. The balance changes only after approval.</p>
+                        <p className="mt-2 text-sm text-on-surface-variant">After you transfer, upload the receipt or screenshot so an accountant can approve it.</p>
                         <form className="mt-4 space-y-3" onSubmit={(event) => { event.preventDefault(); fund.post(route('wallet.funding.store'), { forceFormData: true }); }}>
                             <label className="block text-sm">
                                 <span className="mb-1 block text-on-surface-variant">Amount (₦)</span>
@@ -37,19 +50,6 @@ export default function Index({ balance, frozen, payments_enabled, limits, trans
                             </label>
                             <button className="btn-accent" disabled={fund.processing || frozen}>Submit for approval</button>
                         </form>
-                    </section>
-                    <section className="card-surface p-5">
-                        <div className="text-xs font-bold uppercase tracking-wide text-secondary">Pay into</div>
-                        <h2 className="font-display text-2xl font-bold">Mall account</h2>
-                        {hasAccount ? (
-                            <dl className="mt-3 space-y-2 text-sm">
-                                {account.bank && <div><dt className="text-on-surface-variant">Bank</dt><dd className="font-semibold">{account.bank}</dd></div>}
-                                {account.name && <div><dt className="text-on-surface-variant">Account name</dt><dd className="font-semibold">{account.name}</dd></div>}
-                                {account.number && <div><dt className="text-on-surface-variant">Account number</dt><dd className="font-display text-xl font-extrabold text-primary">{account.number}</dd></div>}
-                            </dl>
-                        ) : (
-                            <p className="mt-3 text-sm text-on-surface-variant">The mall account number appears here after an admin saves it in Settings. You can still upload a receipt.</p>
-                        )}
                     </section>
                 </div>
 
