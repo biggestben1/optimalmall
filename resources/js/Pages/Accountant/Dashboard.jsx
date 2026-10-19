@@ -17,6 +17,7 @@ export default function Dashboard({ stats }) {
                 <Link className="text-primary" href={route('accountant.transactions')}>Review transactions</Link>
                 <Link className="text-primary" href={route('accountant.reconciliation')}>Reconcile</Link>
                 <Link className="text-primary" href={route('accountant.payouts')}>Payout queue</Link>
+                <Link className="text-primary" href={route('accountant.funding')}>Funding receipts</Link>
             </div>
         </AccountantLayout>
     );

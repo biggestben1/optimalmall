@@ -4,6 +4,7 @@ const links = [
     ['accountant.dashboard', 'Dashboard', 'dashboard'],
     ['accountant.transactions', 'Transactions', 'receipt_long'],
     ['accountant.wallets', 'Wallets', 'account_balance_wallet'],
+    ['accountant.funding', 'Funding receipts', 'upload_file'],
     ['accountant.reconciliation', 'Reconciliation', 'rule'],
     ['accountant.payouts', 'Payouts', 'payments'],
     ['accountant.refunds', 'Refunds', 'undo'],

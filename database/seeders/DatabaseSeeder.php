@@ -21,6 +21,16 @@ class DatabaseSeeder extends Seeder
         );
 
         User::query()->updateOrCreate(
+            ['email' => 'accountant@optimalmall.ng'],
+            [
+                'name' => 'OptimalMall Accountant',
+                'password' => 'password',
+                'role' => UserRole::Accountant,
+                'email_verified_at' => now(),
+            ],
+        );
+
+        User::query()->updateOrCreate(
             ['email' => 'customer@optimalmall.ng'],
             [
                 'name' => 'Emeka Customer',

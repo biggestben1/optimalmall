@@ -12,6 +12,7 @@ use App\Models\Payout;
 use App\Models\Reconciliation;
 use App\Models\Wallet;
 use App\Models\WalletAdjustment;
+use App\Models\WalletFundingRequest;
 use App\Models\WalletTransaction;
 use App\Services\Accounting\Books;
 use App\Services\Vendor\AuditLogger;
@@ -20,6 +21,7 @@ use App\Support\MarketplaceSettings;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -43,8 +45,56 @@ class WorkspaceController extends Controller
                 ['label' => 'Bank settlement', 'value' => Money::format($numbers['bank'])],
                 ['label' => 'Provider clearing', 'value' => Money::format($numbers['clearing'])],
                 ['label' => 'Unreconciled items', 'value' => (string) $numbers['unreconciled']],
+                ['label' => 'Funding receipts waiting', 'value' => (string) WalletFundingRequest::query()->where('status', 'pending')->count()],
             ],
         ]);
+    }
+
+    public function funding(): Response
+    {
+        $requests = WalletFundingRequest::query()
+            ->with('user')
+            ->latest()
+            ->paginate(20)
+            ->through(fn (WalletFundingRequest $funding) => [
+                'id' => $funding->id,
+                'customer' => $funding->user?->name,
+                'email' => $funding->user?->email,
+                'amount' => Money::format($funding->amount),
+                'status' => ucfirst($funding->status),
+                'pending' => $funding->status === 'pending',
+                'note' => $funding->review_note,
+                'created_at' => $funding->created_at?->format('d M Y H:i'),
+            ]);
+
+        return Inertia::render('Accountant/Funding', [
+            'requests' => $requests,
+        ]);
+    }
+
+    public function fundingProof(WalletFundingRequest $funding): StreamedResponse
+    {
+        abort_unless(Storage::disk('local')->exists($funding->proof_path), 404);
+
+        return Storage::disk('local')->response($funding->proof_path);
+    }
+
+    public function approveFunding(WalletFundingRequest $funding, Books $books): RedirectResponse
+    {
+        $books->approveFunding($funding, auth()->user());
+
+        return back()->with('status', 'Funding approved. The customer wallet is credited.');
+    }
+
+    public function rejectFunding(Request $request, WalletFundingRequest $funding, Books $books): RedirectResponse
+    {
+        $data = $request->validate([
+            'review_note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $books->rejectFunding($funding, $request->user(), $data['review_note'] ?? null);
+
+        return back()->with('status', 'Funding request rejected. The wallet was not credited.');
     }
 
     public function transactions(Request $request): Response|StreamedResponse

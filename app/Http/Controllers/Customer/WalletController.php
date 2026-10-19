@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Customer;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\WalletFundingRequest;
 use App\Models\WalletTransaction;
 use App\Services\Accounting\Books;
 use App\Support\MarketplaceSettings;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -46,7 +48,44 @@ class WalletController extends Controller
             ],
             'transactions' => $transactions,
             'orders' => $orders,
+            'funding' => WalletFundingRequest::query()
+                ->where('user_id', $request->user()->id)
+                ->latest()
+                ->take(8)
+                ->get()
+                ->map(fn (WalletFundingRequest $funding) => [
+                    'id' => $funding->id,
+                    'amount' => Money::format($funding->amount),
+                    'status' => ucfirst($funding->status),
+                    'note' => $funding->review_note,
+                    'created_at' => $funding->created_at?->format('d M Y H:i'),
+                ]),
+            'account' => [
+                'bank' => (string) MarketplaceSettings::get('funding_bank', ''),
+                'name' => (string) MarketplaceSettings::get('funding_account_name', ''),
+                'number' => (string) MarketplaceSettings::get('funding_account_number', ''),
+            ],
         ]);
+    }
+
+    public function fundWithProof(Request $request, Books $books): RedirectResponse
+    {
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1'],
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+        ]);
+
+        $path = $request->file('proof')->store('funding-proofs/'.$request->user()->id, 'local');
+
+        try {
+            $books->submitFundingProof($request->user(), (float) $data['amount'], $path);
+        } catch (\Throwable $exception) {
+            Storage::disk('local')->delete($path);
+
+            throw $exception;
+        }
+
+        return back()->with('status', 'Receipt received. Your balance changes only after an accountant approves it.');
     }
 
     public function fund(Request $request, Books $books): RedirectResponse

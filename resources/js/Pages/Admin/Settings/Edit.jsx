@@ -49,6 +49,34 @@ export default function Edit({ settings, integrations }) {
                         </select>
                     </div>
                 </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Funding bank</label>
+                        <input value={data.funding_bank || ''} onChange={(e) => setData('funding_bank', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="Bank name" />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Account name</label>
+                        <input value={data.funding_account_name || ''} onChange={(e) => setData('funding_account_name', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="OptimalMall" />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Account number</label>
+                        <input value={data.funding_account_number || ''} onChange={(e) => setData('funding_account_number', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="0123456789" />
+                    </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Funding bank</label>
+                        <input value={data.funding_bank || ''} onChange={(e) => setData('funding_bank', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="Bank name" />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Account name</label>
+                        <input value={data.funding_account_name || ''} onChange={(e) => setData('funding_account_name', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="OptimalMall" />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-bold uppercase">Account number</label>
+                        <input value={data.funding_account_number || ''} onChange={(e) => setData('funding_account_number', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="0123456789" />
+                    </div>
+                </div>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={data.require_product_approval} onChange={(e) => setData('require_product_approval', e.target.checked)} /> Sellers must wait for listing approval</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={data.two_factor_required} onChange={(e) => setData('two_factor_required', e.target.checked)} /> Require two-factor for master admins and accountants</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={data.notify_email} onChange={(e) => setData('notify_email', e.target.checked)} /> Send notification emails</label>

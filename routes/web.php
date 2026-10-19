@@ -45,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('customer')->group(function () {
         Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
         Route::post('/wallet/fund', [WalletController::class, 'fund'])->name('wallet.fund');
+        Route::post('/wallet/funding', [WalletController::class, 'fundWithProof'])->name('wallet.funding.store');
         Route::post('/wallet/orders/{order}/pay', [WalletController::class, 'pay'])->name('wallet.pay');
         Route::get('/wallet/statement', [WalletController::class, 'statement'])->name('wallet.statement');
         Route::get('/wallet/transactions/{transaction}', [WalletController::class, 'receipt'])->name('wallet.receipt');

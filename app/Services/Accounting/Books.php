@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Wallet;
 use App\Models\WalletAdjustment;
+use App\Models\WalletFundingRequest;
 use App\Models\WalletTransaction;
 use App\Services\Vendor\AuditLogger;
 use App\Services\Vendor\Earnings;
@@ -132,6 +133,114 @@ class Books
             ]);
 
             return $payment;
+        });
+    }
+
+    public function submitFundingProof(User $user, float $amount, string $proofPath): WalletFundingRequest
+    {
+        $amount = round($amount, 2);
+        $wallet = $this->customerWallet($user);
+        $this->guard($wallet, $amount, 'credit');
+        $reference = $this->reference('FUND');
+
+        return DB::transaction(function () use ($wallet, $user, $amount, $proofPath, $reference) {
+            $payment = Payment::query()->create([
+                'order_id' => null,
+                'reference' => $reference,
+                'method' => 'transfer',
+                'amount' => $amount,
+                'status' => PaymentStatus::Pending,
+            ]);
+
+            $wallet->transactions()->create([
+                'reference' => $reference,
+                'idempotency_key' => 'funding-pending:'.$reference,
+                'type' => 'deposit',
+                'direction' => 'credit',
+                'amount' => $amount,
+                'status' => 'pending',
+                'description' => 'Wallet funding waiting for accountant approval',
+                'payment_id' => $payment->id,
+            ]);
+
+            return WalletFundingRequest::query()->create([
+                'user_id' => $user->id,
+                'wallet_id' => $wallet->id,
+                'payment_id' => $payment->id,
+                'amount' => $amount,
+                'proof_path' => $proofPath,
+                'status' => 'pending',
+            ]);
+        });
+    }
+
+    public function approveFunding(WalletFundingRequest $funding, User $actor): void
+    {
+        DB::transaction(function () use ($funding, $actor) {
+            $locked = WalletFundingRequest::query()->whereKey($funding->id)->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'funding' => 'This funding request is no longer waiting.',
+                ]);
+            }
+
+            $payment = Payment::query()->whereKey($locked->payment_id)->lockForUpdate()->first();
+            $pending = WalletTransaction::query()
+                ->where('payment_id', $payment?->id)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($payment === null || $pending === null) {
+                throw ValidationException::withMessages([
+                    'funding' => 'The payment record for this request is missing.',
+                ]);
+            }
+
+            $payment->update([
+                'status' => PaymentStatus::Successful,
+                'paid_at' => now(),
+            ]);
+            $this->completeDeposit($payment->fresh(), $pending);
+            $locked->update([
+                'status' => 'approved',
+                'reviewed_by' => $actor->id,
+                'reviewed_at' => now(),
+            ]);
+            AuditLogger::record('wallet.funding.approved', $locked, [
+                'amount' => (float) $locked->amount,
+                'reference' => $payment->reference,
+            ], null, $actor);
+        });
+    }
+
+    public function rejectFunding(WalletFundingRequest $funding, User $actor, ?string $note = null): void
+    {
+        DB::transaction(function () use ($funding, $actor, $note) {
+            $locked = WalletFundingRequest::query()->whereKey($funding->id)->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'funding' => 'This funding request is no longer waiting.',
+                ]);
+            }
+
+            Payment::query()->whereKey($locked->payment_id)->update([
+                'status' => PaymentStatus::Failed,
+            ]);
+            WalletTransaction::query()
+                ->where('payment_id', $locked->payment_id)
+                ->where('status', 'pending')
+                ->update(['status' => 'failed']);
+            $locked->update([
+                'status' => 'rejected',
+                'reviewed_by' => $actor->id,
+                'review_note' => $note,
+                'reviewed_at' => now(),
+            ]);
+            AuditLogger::record('wallet.funding.rejected', $locked, [
+                'amount' => (float) $locked->amount,
+            ], null, $actor);
         });
     }
 

@@ -11,9 +11,12 @@ use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\WalletFundingRequest;
 use App\Models\WalletTransaction;
 use App\Services\Accounting\Books;
 use App\Support\MarketplaceSettings;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 
 function signedWebhook(array $payload): TestResponse
@@ -217,4 +220,44 @@ it('refuses a seller token on the customer wallet api', function () {
     $token = $seller->createToken('phone')->plainTextToken;
 
     $this->withToken($token)->getJson('/api/v1/wallet')->assertForbidden();
+});
+
+it('credits a wallet only after an accountant approves the receipt', function () {
+    Storage::fake('local');
+    $customer = User::factory()->create();
+    $accountant = User::factory()->create(['role' => UserRole::Accountant]);
+
+    $this->actingAs($customer)->post(route('wallet.funding.store'), [
+        'amount' => 4000,
+        'proof' => UploadedFile::fake()->createWithContent('receipt.jpg', base64_decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAGf/9k=')),
+    ])->assertRedirect();
+
+    expect(app(Books::class)->customerWallet($customer)->balance())->toBe(0.0);
+
+    $funding = WalletFundingRequest::query()->first();
+
+    $this->actingAs($accountant)->post(route('accountant.funding.approve', $funding))->assertRedirect();
+
+    expect(app(Books::class)->customerWallet($customer)->balance())->toBe(4000.0)
+        ->and($funding->fresh()->status)->toBe('approved');
+});
+
+it('leaves the wallet unchanged when the receipt is rejected', function () {
+    Storage::fake('local');
+    $customer = User::factory()->create();
+    $accountant = User::factory()->create(['role' => UserRole::Accountant]);
+
+    $this->actingAs($customer)->post(route('wallet.funding.store'), [
+        'amount' => 1500,
+        'proof' => UploadedFile::fake()->createWithContent('receipt.jpg', base64_decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAGf/9k=')),
+    ])->assertRedirect();
+
+    $funding = WalletFundingRequest::query()->first();
+
+    $this->actingAs($accountant)->post(route('accountant.funding.reject', $funding), [
+        'review_note' => 'The name on the receipt does not match.',
+    ])->assertRedirect();
+
+    expect(app(Books::class)->customerWallet($customer)->balance())->toBe(0.0)
+        ->and($funding->fresh()->status)->toBe('rejected');
 });
