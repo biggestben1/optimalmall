@@ -25,8 +25,8 @@ export default function Form({ vendor, statuses, hasLogin = false }) {
     };
 
     return (
-        <AdminLayout title="Sellers" heading={editing ? 'Edit vendor' : 'New vendor'}>
-            <Head title={editing ? 'Edit vendor' : 'New vendor'} />
+        <AdminLayout title="Sellers" heading={editing ? 'Edit seller' : 'New seller'}>
+            <Head title={editing ? 'Edit seller' : 'New seller'} />
             <form onSubmit={submit} className="card-surface max-w-xl space-y-4 p-6">
                 <div>
                     <label className="mb-1 block text-xs font-bold uppercase">Name</label>

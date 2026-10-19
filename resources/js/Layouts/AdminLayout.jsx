@@ -4,9 +4,9 @@ import ApplicationLogo from '../Components/ApplicationLogo';
 
 const navLinks = [
     { route: 'admin.dashboard', label: 'Dashboard', icon: 'dashboard', match: 'admin.dashboard' },
+    { route: 'admin.vendors.index', label: 'Sellers', icon: 'storefront', match: 'admin.vendors.*' },
     { route: 'admin.products.index', label: 'Products', icon: 'inventory_2', match: 'admin.products.*' },
     { route: 'admin.categories.index', label: 'Categories', icon: 'category', match: 'admin.categories.*' },
-    { route: 'admin.vendors.index', label: 'Vendors', icon: 'storefront', match: 'admin.vendors.*' },
     { route: 'admin.customers.index', label: 'Customers', icon: 'group', match: 'admin.customers.*' },
     { route: 'admin.banners.index', label: 'Banners', icon: 'image', match: 'admin.banners.*' },
     { route: 'admin.orders.index', label: 'Orders', icon: 'receipt_long', match: 'admin.orders.*' },

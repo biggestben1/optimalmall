@@ -21,15 +21,18 @@ class VendorController extends Controller
     public function index(): Response
     {
         $vendors = Vendor::query()
+            ->with('user')
             ->latest()
             ->paginate(15)
             ->withQueryString()
             ->through(fn (Vendor $vendor) => [
                 'id' => $vendor->id,
                 'name' => $vendor->name,
+                'email' => $vendor->user?->email ?? $vendor->email,
                 'city' => $vendor->city,
                 'state' => $vendor->state,
                 'status_label' => $vendor->status->label(),
+                'can_login' => $vendor->user_id !== null,
             ]);
 
         return Inertia::render('Admin/Vendors/Index', [
