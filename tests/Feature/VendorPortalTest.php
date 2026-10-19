@@ -13,6 +13,8 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 function vendorShop(): array
 {
@@ -45,6 +47,26 @@ it('opens every seller module for the signed-in shop', function () {
     foreach ($routes as $name) {
         $this->actingAs($seller)->get(route($name))->assertOk();
     }
+});
+
+it('stores an uploaded product image on the public disk', function () {
+    Storage::fake('public');
+    [$seller] = vendorShop();
+    $category = Category::factory()->create();
+
+    $this->actingAs($seller)->post(route('vendor.products.store'), [
+        'category_id' => $category->id,
+        'title' => 'Photo Lamp',
+        'price' => 9000,
+        'stock' => 2,
+        'status' => ProductStatus::Draft->value,
+        'images' => [UploadedFile::fake()->createWithContent('lamp.png', file_get_contents(public_path('favicon-32.png')))],
+    ])->assertRedirect(route('vendor.products.index'));
+
+    $product = Product::query()->where('title', 'Photo Lamp')->first();
+
+    expect($product->images)->toHaveCount(1);
+    Storage::disk('public')->assertExists($product->images->first()->path);
 });
 
 it('submits a product for admin approval instead of publishing it', function () {

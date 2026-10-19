@@ -25,7 +25,9 @@ use App\Models\VendorBankAccount;
 use App\Models\VendorNotification;
 use App\Support\Money;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -187,6 +189,7 @@ class Portal
         }
 
         $images = $product?->images->pluck('path')->all() ?? [];
+        $remoteImages = array_values(array_filter($images, fn (string $path) => str_starts_with($path, 'http://') || str_starts_with($path, 'https://')));
 
         return [
             'product' => [
@@ -200,8 +203,9 @@ class Portal
                 'sku' => $product?->sku ?? '',
                 'status' => $product?->status->value ?? ProductStatus::Draft->value,
                 'approval_label' => $product?->approval_status?->label(),
-                'image_url' => $images[0] ?? '',
-                'image_urls' => implode("\n", array_slice($images, 1)),
+                'image_url' => $remoteImages[0] ?? '',
+                'image_urls' => implode("\n", array_slice($remoteImages, 1)),
+                'image_preview' => isset($images[0]) ? $this->imageUrl($images[0]) : '',
             ],
             'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
             'statuses' => collect(ProductStatus::cases())->map(fn (ProductStatus $status) => [
@@ -236,13 +240,19 @@ class Portal
             'status' => ['required', Rule::enum(ProductStatus::class)],
             'image_url' => ['nullable', 'url', 'max:500'],
             'image_urls' => ['nullable', 'string', 'max:5000'],
+            'images' => ['nullable', 'array', 'max:8'],
+            'images.*' => ['image', 'max:4096'],
         ])->validate();
 
         $extraImages = collect(preg_split('/\r\n|\r|\n/', (string) ($data['image_urls'] ?? '')))
             ->map(fn ($url) => trim($url))
             ->filter();
         $imageUrl = $data['image_url'] ?? null;
-        unset($data['image_url'], $data['image_urls']);
+        $uploads = collect($input['images'] ?? [])
+            ->filter(fn ($file) => $file instanceof UploadedFile)
+            ->map(fn (UploadedFile $file) => $file->store('products', 'public'))
+            ->values();
+        unset($data['image_url'], $data['image_urls'], $data['images']);
 
         if (($data['compare_at_price'] ?? '') === '') {
             $data['compare_at_price'] = null;
@@ -273,7 +283,7 @@ class Portal
             AuditLogger::record('product.updated', $product, ['title' => $product->title], $this->shop, $this->user);
         }
 
-        $this->syncImages($product, $imageUrl, $extraImages);
+        $this->syncImages($product, $imageUrl, $extraImages, $uploads);
 
         if ($submitted) {
             $this->shop->notifyPortal('Product submitted', $product->title.' is waiting for admin approval.');
@@ -860,29 +870,54 @@ class Portal
 
     /**
      * @param  Collection<int, string>  $extra
+     * @param  Collection<int, string>  $uploads
      */
-    private function syncImages(Product $product, ?string $primary, Collection $extra): void
+    private function syncImages(Product $product, ?string $primary, Collection $extra, Collection $uploads): void
     {
-        $urls = collect([$primary])->merge($extra)->filter(fn ($url) => filled($url))->unique()->values();
+        $paths = $uploads
+            ->merge([$primary])
+            ->merge($extra)
+            ->filter(fn ($path) => filled($path))
+            ->unique()
+            ->values();
 
-        if ($urls->isEmpty()) {
+        if ($paths->isEmpty()) {
             return;
         }
 
-        foreach ($urls as $url) {
-            validator(['image' => $url], ['image' => ['url', 'max:500']])->validate();
+        foreach ($paths as $path) {
+            if (str_starts_with((string) $path, 'http://') || str_starts_with((string) $path, 'https://')) {
+                validator(['image' => $path], ['image' => ['url', 'max:500']])->validate();
+            }
+        }
+
+        $product->load('images');
+
+        foreach ($product->images as $image) {
+            if (! str_starts_with($image->path, 'http://') && ! str_starts_with($image->path, 'https://')) {
+                Storage::disk('public')->delete($image->path);
+            }
         }
 
         $product->images()->delete();
 
-        foreach ($urls as $index => $url) {
+        foreach ($paths as $index => $path) {
             ProductImage::query()->create([
                 'product_id' => $product->id,
-                'path' => $url,
+                'path' => $path,
                 'is_primary' => $index === 0,
                 'sort_order' => $index,
             ]);
         }
+    }
+
+    private function imageUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     private function ownedCoupon(?Coupon $coupon): void

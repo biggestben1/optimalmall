@@ -1,10 +1,12 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import VendorLayout from '../../../Layouts/VendorLayout';
 import InputError from '../../../Components/Admin/InputError';
 
 export default function Form({ product, categories, statuses, approval_required }) {
     const editing = Boolean(product?.id);
-    const { data, setData, post, put, processing, errors } = useForm({
+    const [previews, setPreviews] = useState([]);
+    const { data, setData, post, processing, errors, transform } = useForm({
         category_id: product?.category_id ?? categories[0]?.id ?? '',
         title: product?.title ?? '',
         description: product?.description ?? '',
@@ -15,15 +17,24 @@ export default function Form({ product, categories, statuses, approval_required 
         status: product?.status ?? 'draft',
         image_url: product?.image_url ?? '',
         image_urls: product?.image_urls ?? '',
+        images: [],
     });
 
     const submit = (event) => {
         event.preventDefault();
-        if (editing) {
-            put(route('vendor.products.update', product.id));
-        } else {
-            post(route('vendor.products.store'));
-        }
+        transform((payload) => ({
+            ...payload,
+            ...(editing ? { _method: 'put' } : {}),
+        }));
+        post(editing ? route('vendor.products.update', product.id) : route('vendor.products.store'), {
+            forceFormData: true,
+        });
+    };
+
+    const chooseImages = (event) => {
+        const files = Array.from(event.target.files || []);
+        setData('images', files);
+        setPreviews(files.map((file) => URL.createObjectURL(file)));
     };
 
     return (
@@ -89,7 +100,21 @@ export default function Form({ product, categories, statuses, approval_required 
                     </div>
                 </div>
                 <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Primary image URL</label>
+                    <label className="mb-1 block text-xs font-bold uppercase">Upload images</label>
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={chooseImages} className="block w-full text-sm" />
+                    <p className="mt-1 text-xs text-on-surface-variant">The first image is the main photo. JPG, PNG, WEBP, or GIF up to 4 MB each.</p>
+                    <InputError message={errors.images} />
+                    <InputError message={errors['images.0']} />
+                    {(previews.length > 0 || product?.image_preview) && (
+                        <div className="mt-3 flex flex-wrap gap-3">
+                            {(previews.length > 0 ? previews : [product.image_preview]).map((src) => (
+                                <img key={src} src={src} alt="" className="h-24 w-24 rounded-xl object-cover" />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <label className="mb-1 block text-xs font-bold uppercase">Or paste an image URL</label>
                     <input value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="https://..." />
                     <InputError message={errors.image_url} />
                 </div>
