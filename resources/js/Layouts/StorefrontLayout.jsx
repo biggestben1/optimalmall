@@ -3,7 +3,7 @@ import ApplicationLogo from '../Components/ApplicationLogo';
 import HeaderSearch from '../Components/HeaderSearch';
 
 export default function StorefrontLayout({ children }) {
-    const { auth, navCategories = [], flash, cart } = usePage().props;
+    const { auth, navCategories = [], flash, cart, wishlist } = usePage().props;
     const { url } = usePage();
     const firstName = auth.user?.name?.split(' ')[0] || 'Guest';
     const query = url.includes('?') ? url.split('?')[1] : '';
@@ -61,9 +61,12 @@ export default function StorefrontLayout({ children }) {
                             </Link>
                         )}
 
-                        <button type="button" className="relative p-1 text-on-surface-variant opacity-60" title="Wishlist coming in Phase 2" disabled>
+                        <Link href={route('wishlist.index')} className="relative p-1 text-on-surface-variant" title="Wishlist">
                             <span className="material-symbols-outlined text-[24px]">favorite</span>
-                        </button>
+                            {wishlist?.count > 0 && (
+                                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-bold text-on-secondary">{wishlist.count}</span>
+                            )}
+                        </Link>
                         <Link href={route('cart.index')} className="relative flex items-center gap-2 rounded-xl bg-primary-container px-3 py-1.5 text-on-primary">
                             <span className="material-symbols-outlined text-[22px]">shopping_bag</span>
                             {cart?.count > 0 && (
@@ -118,9 +121,10 @@ export default function StorefrontLayout({ children }) {
             </header>
 
             <main className="min-h-screen pt-[14.5rem] md:pt-[10.5rem] lg:pt-40">
-                {flash?.status && (
-                    <div className="mx-auto max-w-7xl px-4 py-3 lg:px-10">
-                        <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</div>
+                {(flash?.status || flash?.error) && (
+                    <div className="mx-auto max-w-7xl space-y-2 px-4 py-3 lg:px-10">
+                        {flash?.status && <div className="rounded-xl bg-tertiary-fixed px-4 py-3 text-sm font-semibold text-tertiary">{flash.status}</div>}
+                        {flash?.error && <div className="rounded-xl bg-red-100 px-4 py-3 text-sm font-semibold text-red-800">{flash.error}</div>}
                     </div>
                 )}
                 {children}
@@ -136,18 +140,32 @@ export default function StorefrontLayout({ children }) {
                         <div className="font-display text-sm font-bold">Shop</div>
                         <ul className="mt-3 space-y-2 text-sm text-primary-fixed">
                             <li><Link href={route('products.index')} className="hover:text-white">All products</Link></li>
+                            <li><Link href={route('shops.index')} className="hover:text-white">Shops</Link></li>
+                            <li><Link href={route('cart.index')} className="hover:text-white">Cart</Link></li>
+                            <li><Link href={route('wishlist.index')} className="hover:text-white">Wishlist</Link></li>
                         </ul>
                     </div>
                     <div>
                         <div className="font-display text-sm font-bold">Account</div>
                         <ul className="mt-3 space-y-2 text-sm text-primary-fixed">
-                            <li><Link href={route('login')} className="hover:text-white">Sign in</Link></li>
-                            <li><Link href={route('register')} className="hover:text-white">Create account</Link></li>
+                            {auth.user?.role === 'customer' ? (
+                                <li><Link href={route('account.orders.index')} className="hover:text-white">My orders</Link></li>
+                            ) : (
+                                <>
+                                    <li><Link href={route('login')} className="hover:text-white">Sign in</Link></li>
+                                    <li><Link href={route('register')} className="hover:text-white">Create account</Link></li>
+                                </>
+                            )}
+                            <li><Link href={route('track.create')} className="hover:text-white">Track an order</Link></li>
                         </ul>
                     </div>
                     <div>
                         <div className="font-display text-sm font-bold">Support</div>
-                        <p className="mt-3 text-sm text-primary-fixed">+234 800-OPTIMAL<br />hello@optimalmall.ng</p>
+                        <ul className="mt-3 space-y-2 text-sm text-primary-fixed">
+                            <li><Link href={route('help.create')} className="hover:text-white">Help</Link></li>
+                            <li>+234 800-OPTIMAL</li>
+                            <li>hello@optimalmall.ng</li>
+                        </ul>
                     </div>
                 </div>
                 <div className="border-t border-white/10 py-4 text-center text-xs text-primary-fixed">© {new Date().getFullYear()} OptimalMall</div>

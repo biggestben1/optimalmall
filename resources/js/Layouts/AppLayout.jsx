@@ -8,13 +8,16 @@ export default function AppLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-surface-container-low">
             <nav className="border-b border-surface-container bg-surface-container-lowest">
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-                    <div className="flex items-center gap-6">
+                <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 lg:px-8">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
                         <ApplicationLogo showTagline={false} size="sm" />
                         <Link href={route('dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Dashboard</Link>
                         <Link href={route('profile.edit')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Profile</Link>
                         {auth.user?.role === 'customer' && (
-                            <Link href={route('wallet.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Wallet</Link>
+                            <>
+                                <Link href={route('account.orders.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Orders</Link>
+                                <Link href={route('wallet.index')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Wallet</Link>
+                            </>
                         )}
                         {auth.user?.is_super_admin && (
                             <Link href={route('admin.dashboard')} className="text-sm font-semibold text-on-surface-variant hover:text-primary">Admin</Link>
@@ -24,10 +27,10 @@ export default function AppLayout({ header, children }) {
                         )}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                        <span>{auth.user?.name}</span>
+                        <span className="max-w-40 truncate font-semibold">{auth.user?.name}</span>
                         <button
                             type="button"
-                            className="font-bold text-primary"
+                            className="whitespace-nowrap font-bold text-primary"
                             onClick={() => post(route('logout'))}
                         >
                             Log out

@@ -79,15 +79,15 @@ export default function Home({ categories, banners, featured, trending, bestSell
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-tertiary-fixed">Sell on OptimalMall</div>
                                 <h2 className="mt-2 font-display text-xl font-bold">Sell to Ready Shoppers</h2>
-                                <p className="mt-2 text-sm text-primary-fixed">Vendor onboarding arrives in Phase 3.</p>
+                                <p className="mt-2 text-sm text-primary-fixed">Browse verified shops for phones, fashion, groceries, and home.</p>
                             </div>
-                            <span className="mt-4 inline-flex w-fit rounded-lg bg-white/15 px-3 py-2 text-sm font-bold">Coming soon</span>
+                            <Link href={route('shops.index')} className="mt-4 inline-flex w-fit rounded-lg bg-white/15 px-3 py-2 text-sm font-bold">Browse shops</Link>
                         </div>
                         <div className="card-surface flex flex-1 flex-col justify-between p-5">
                             <div>
-                                <div className="text-xs font-bold uppercase tracking-wide text-secondary">Escrow Protection</div>
-                                <h2 className="mt-2 font-display text-lg font-bold">Pay securely in Naira</h2>
-                                <p className="mt-2 text-sm text-on-surface-variant">Paystack checkout lands in Phase 2.</p>
+                                <div className="text-xs font-bold uppercase tracking-wide text-secondary">Checkout</div>
+                                <h2 className="mt-2 font-display text-lg font-bold">Pay on delivery or wallet</h2>
+                                <p className="mt-2 text-sm text-on-surface-variant">Delivery is free from ₦100,000. Track any order with its number and email.</p>
                             </div>
                             <Link href={route('products.index')} className="btn-primary mt-4 w-fit">Browse catalogue</Link>
                         </div>

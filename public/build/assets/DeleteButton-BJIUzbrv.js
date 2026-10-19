@@ -1,1 +1,0 @@
-import{s as e,t}from"./app-Br1as3dP.js";var n=t();function r({href:t,label:r=`Delete`,confirmMessage:i=`Delete this record?`}){return(0,n.jsx)(`button`,{type:`button`,className:`font-bold text-red-600`,onClick:()=>{window.confirm(i)&&e.delete(t)},children:r})}export{r as t};

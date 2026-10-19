@@ -1,7 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import StorefrontLayout from '../../Layouts/StorefrontLayout';
 
-export default function Cart({ lines, summary }) {
+export default function Cart({ lines, summary, quote }) {
+    const coupon = useForm({ code: quote.coupon || '' });
     return (
         <StorefrontLayout>
             <Head title="Cart" />
@@ -43,9 +44,35 @@ export default function Cart({ lines, summary }) {
                                 <button type="button" className="text-sm font-bold text-secondary" onClick={() => router.delete(route('cart.destroy', line.slug), { preserveScroll: true })}>Remove</button>
                             </article>
                         ))}
-                        <div className="card-surface flex items-center justify-between p-4">
-                            <span className="text-sm text-on-surface-variant">{summary.count} item{summary.count === 1 ? '' : 's'}</span>
-                            <span className="font-display text-2xl font-extrabold text-primary">{summary.total_label}</span>
+                        <div className="card-surface space-y-3 p-4">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-on-surface-variant">{summary.count} item{summary.count === 1 ? '' : 's'}</span>
+                                <span>{quote.subtotal_label}</span>
+                            </div>
+                            {quote.discount_label && (
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-on-surface-variant">Coupon {quote.coupon}</span>
+                                    <span>-{quote.discount_label}</span>
+                                </div>
+                            )}
+                            <form className="flex flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); coupon.post(route('checkout.coupon'), { preserveScroll: true }); }}>
+                                <input className="rounded-xl border border-surface-container px-3 py-2 text-sm" value={coupon.data.code} onChange={(event) => coupon.setData('code', event.target.value)} placeholder="Coupon code" />
+                                <button className="rounded-xl border border-surface-container px-3 py-2 text-sm font-bold" disabled={coupon.processing}>Apply</button>
+                                {quote.coupon && <button type="button" className="text-sm font-bold text-secondary" onClick={() => router.delete(route('checkout.coupon.destroy'), { preserveScroll: true })}>Remove</button>}
+                            </form>
+                            {coupon.errors.code && <p className="text-sm text-red-700">{coupon.errors.code}</p>}
+                            {quote.coupon_message && <p className="text-sm text-red-700">{quote.coupon_message}</p>}
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-on-surface-variant">Delivery</span>
+                                <span>{quote.shipping_label}</span>
+                            </div>
+                            {quote.free_delivery && <p className="text-sm text-on-surface-variant">Free delivery on orders from ₦100,000.</p>}
+                            {!quote.free_delivery && <p className="text-sm text-on-surface-variant">Delivery is free from ₦100,000.</p>}
+                            <div className="flex items-center justify-between">
+                                <span className="font-semibold">Total</span>
+                                <span className="font-display text-2xl font-extrabold text-primary">{quote.total_label}</span>
+                            </div>
+                            <Link href={route('checkout.create')} className="btn-accent inline-flex">Checkout</Link>
                         </div>
                     </div>
                 )}

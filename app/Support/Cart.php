@@ -53,6 +53,11 @@ class Cart
         session([self::SESSION_KEY => $items]);
     }
 
+    public function clear(): void
+    {
+        session()->forget(self::SESSION_KEY);
+    }
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -95,6 +100,7 @@ class Cart
                 'line_total' => $lineTotal,
                 'line_total_label' => Money::format($lineTotal),
                 'image_url' => $product->primaryImage?->url() ?? $product->images->first()?->url(),
+                'vendor_id' => $product->vendor_id,
                 'vendor' => $product->vendor?->name,
             ];
         }

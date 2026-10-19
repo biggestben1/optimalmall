@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Category;
 use App\Support\AdminAccess;
 use App\Support\Cart;
+use App\Support\Wishlist;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'cart' => fn () => app(Cart::class)->summary(),
+            'wishlist' => fn () => ['count' => app(Wishlist::class)->count()],
             'navCategories' => fn () => Category::query()
                 ->whereNull('parent_id')
                 ->where('is_active', true)

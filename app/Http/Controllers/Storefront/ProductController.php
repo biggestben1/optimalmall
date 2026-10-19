@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Storefront;
 
+use App\Enums\ReviewStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Review;
+use App\Support\Wishlist;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -84,11 +88,23 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(Product $product): Response
+    public function show(Product $product, Wishlist $wishlist): Response
     {
         abort_unless($product->status->value === 'active', 404);
 
         $product->load(['images', 'vendor', 'category.parent']);
+        $user = auth()->user();
+        $reviewed = $user !== null && Review::query()->where('product_id', $product->id)->where('user_id', $user->id)->exists();
+        $bought = $user !== null && OrderItem::query()
+            ->where('product_id', $product->id)
+            ->whereHas('order', fn ($query) => $query->where('user_id', $user->id))
+            ->exists();
+        $reviews = Review::query()
+            ->where('product_id', $product->id)
+            ->where('status', ReviewStatus::Published)
+            ->latest()
+            ->take(8)
+            ->get();
 
         $related = Product::query()
             ->active()
@@ -121,13 +137,25 @@ class ProductController extends Controller
                 'stock' => $product->stock,
                 'in_stock' => $product->inStock(),
                 'image_url' => $product->primaryImage?->url() ?? $product->images->first()?->url(),
+                'images' => $product->images->map(fn ($image) => $image->url())->filter()->values(),
                 'category' => $product->category ? ['id' => $product->category->id, 'name' => $product->category->name] : null,
                 'vendor' => $product->vendor ? [
                     'name' => $product->vendor->name,
+                    'slug' => $product->vendor->slug,
                     'city' => $product->vendor->city,
                     'state' => $product->vendor->state,
                 ] : null,
+                'saved' => $wishlist->has($product->id),
+                'rating' => $reviews->isEmpty() ? null : round($reviews->avg('rating'), 1),
+                'review_count' => $reviews->count(),
             ],
+            'reviews' => $reviews->map(fn (Review $review) => [
+                'author' => $review->author_name,
+                'rating' => $review->rating,
+                'body' => $review->body,
+                'reply' => $review->vendor_reply,
+            ]),
+            'can_review' => $bought && ! $reviewed,
             'related' => $related,
         ]);
     }
