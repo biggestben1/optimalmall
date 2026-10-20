@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('forbids customers from the admin dashboard', function () {
@@ -107,4 +109,30 @@ it('allows super admins to create a product', function () {
         ->assertRedirect(route('admin.products.index'));
 
     expect(Product::query()->where('title', 'Admin Created Speaker')->exists())->toBeTrue();
+});
+
+it('stores an uploaded image when an admin creates a product', function () {
+    Storage::fake('public');
+    $admin = User::factory()->superAdmin()->create();
+    $vendor = Vendor::factory()->create();
+    $category = Category::factory()->create();
+    $jpeg = base64_decode('/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxISEhUQEhIVFhUVFRUYFxgYGBcYGBgYGBgYGBgYGBgYHiggGBolHRgYITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGhAQGy0lHyUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAAEAAQMBIgACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAADAAIEBQYHB//EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqqp/9k=');
+
+    $this->actingAs($admin)
+        ->post(route('admin.products.store'), [
+            'vendor_id' => $vendor->id,
+            'category_id' => $category->id,
+            'title' => 'Uploaded Speaker',
+            'price' => 12000,
+            'stock' => 3,
+            'status' => ProductStatus::Active->value,
+            'image' => UploadedFile::fake()->createWithContent('speaker.jpg', $jpeg),
+        ])
+        ->assertRedirect(route('admin.products.index'));
+
+    $product = Product::query()->where('title', 'Uploaded Speaker')->first();
+
+    expect($product?->primaryImage)->not->toBeNull()
+        ->and($product->primaryImage->path)->toStartWith('products/');
+    Storage::disk('public')->assertExists($product->primaryImage->path);
 });

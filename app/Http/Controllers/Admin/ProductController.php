@@ -13,6 +13,7 @@ use App\Models\Vendor;
 use App\Services\Vendor\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -150,7 +151,8 @@ class ProductController extends Controller
                 'stock' => $product->stock,
                 'sku' => $product->sku,
                 'status' => $product->status->value,
-                'image_url' => $product->primaryImage?->path,
+                'image_url' => str_starts_with((string) $product->primaryImage?->path, 'http') ? $product->primaryImage->path : '',
+                'image_preview' => $product->primaryImage?->url(),
                 'is_featured' => $product->is_featured,
                 'is_trending' => $product->is_trending,
                 'is_best_seller' => $product->is_best_seller,
@@ -201,10 +203,13 @@ class ProductController extends Controller
             'is_trending' => ['sometimes', 'boolean'],
             'is_best_seller' => ['sometimes', 'boolean'],
             'image_url' => ['nullable', 'url', 'max:500'],
+            'image' => ['nullable', 'image', 'max:4096'],
         ]);
 
-        $imageUrl = $data['image_url'] ?? null;
-        unset($data['image_url']);
+        $imageUrl = $request->hasFile('image')
+            ? $request->file('image')->store('products', 'public')
+            : ($data['image_url'] ?? null);
+        unset($data['image_url'], $data['image']);
 
         if (($data['compare_at_price'] ?? '') === '') {
             $data['compare_at_price'] = null;
@@ -255,6 +260,9 @@ class ProductController extends Controller
 
         $image = $product->primaryImage()->first();
         if ($image) {
+            if ($image->path !== $url && ! str_starts_with($image->path, 'http://') && ! str_starts_with($image->path, 'https://')) {
+                Storage::disk('public')->delete($image->path);
+            }
             $image->update(['path' => $url]);
         } else {
             ProductImage::query()->create([

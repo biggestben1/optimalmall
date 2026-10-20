@@ -1,10 +1,12 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import InputError from '../../../Components/Admin/InputError';
 
 export default function Form({ product, vendors, categories, brands = [], statuses }) {
     const editing = Boolean(product?.id);
-    const { data, setData, post, put, processing, errors } = useForm({
+    const [preview, setPreview] = useState(product?.image_preview ?? '');
+    const { data, setData, post, processing, errors, transform } = useForm({
         vendor_id: product?.vendor_id ?? vendors[0]?.id ?? '',
         category_id: product?.category_id ?? categories[0]?.id ?? '',
         brand_id: product?.brand_id ?? '',
@@ -16,6 +18,7 @@ export default function Form({ product, vendors, categories, brands = [], status
         sku: product?.sku ?? '',
         status: product?.status ?? 'draft',
         image_url: product?.image_url ?? '',
+        image: null,
         is_featured: Boolean(product?.is_featured),
         is_trending: Boolean(product?.is_trending),
         is_best_seller: Boolean(product?.is_best_seller),
@@ -23,11 +26,22 @@ export default function Form({ product, vendors, categories, brands = [], status
 
     const submit = (event) => {
         event.preventDefault();
-        if (editing) {
-            put(route('admin.products.update', product.id));
-        } else {
-            post(route('admin.products.store'));
-        }
+        transform((payload) => {
+            const next = { ...payload };
+
+            if (!next.image) {
+                delete next.image;
+            }
+
+            if (editing) {
+                next._method = 'put';
+            }
+
+            return next;
+        });
+        post(editing ? route('admin.products.update', product.id) : route('admin.products.store'), {
+            forceFormData: true,
+        });
     };
 
     return (
@@ -113,7 +127,24 @@ export default function Form({ product, vendors, categories, brands = [], status
                 </div>
 
                 <div>
-                    <label className="mb-1 block text-xs font-bold uppercase">Primary image URL</label>
+                    <label className="mb-1 block text-xs font-bold uppercase">Product image</label>
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="block w-full text-sm"
+                        onChange={(event) => {
+                            const file = event.target.files?.[0] ?? null;
+                            setData('image', file);
+                            setPreview(file ? URL.createObjectURL(file) : (product?.image_preview ?? ''));
+                        }}
+                    />
+                    <p className="mt-1 text-xs text-on-surface-variant">JPG, PNG, or WEBP. Up to 4 MB.</p>
+                    <InputError message={errors.image} />
+                    {preview && <img src={preview} alt="" className="mt-3 h-28 w-28 rounded-xl object-cover" />}
+                </div>
+
+                <div>
+                    <label className="mb-1 block text-xs font-bold uppercase">Or paste an image URL</label>
                     <input value={data.image_url} onChange={(e) => setData('image_url', e.target.value)} className="w-full rounded-xl border-outline-variant" placeholder="https://..." />
                     <InputError message={errors.image_url} />
                 </div>
