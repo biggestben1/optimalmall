@@ -219,7 +219,7 @@ class Portal
                 'image_preview' => isset($images[0]) ? $this->imageUrl($images[0]) : '',
                 'image_previews' => array_map(fn (string $path) => $this->imageUrl($path), $images),
             ],
-            'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
+            'categories' => Category::query()->forProductForm()->get(['id', 'name']),
             'statuses' => collect(ProductStatus::cases())->map(fn (ProductStatus $status) => [
                 'value' => $status->value,
                 'label' => $status === ProductStatus::Active && config('marketplace.require_product_approval')

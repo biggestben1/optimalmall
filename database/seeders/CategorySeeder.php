@@ -17,16 +17,19 @@ class CategorySeeder extends Seeder
             ['name' => 'Fashion & Beauty', 'icon' => 'checkroom', 'children' => ['Men', 'Women', 'Kids', 'Beauty']],
             ['name' => 'Supermarket & Groceries', 'icon' => 'shopping_basket', 'children' => ['Food Cupboard', 'Drinks', 'Household']],
             ['name' => 'Home & Living', 'icon' => 'home', 'children' => ['Furniture', 'Kitchen', 'Decor']],
+            ['name' => 'Health and wellness', 'icon' => 'health_and_safety', 'children' => []],
         ];
 
         foreach ($categories as $index => $data) {
-            $parent = Category::query()->create([
-                'name' => $data['name'],
-                'slug' => Str::slug($data['name']),
-                'icon' => $data['icon'],
-                'sort_order' => $index,
-                'is_active' => true,
-            ]);
+            $parent = Category::query()->firstOrCreate(
+                ['slug' => Str::slug($data['name'])],
+                [
+                    'name' => $data['name'],
+                    'icon' => $data['icon'],
+                    'sort_order' => $index,
+                    'is_active' => true,
+                ],
+            );
 
             foreach ($data['children'] as $childIndex => $childName) {
                 Category::query()->create([

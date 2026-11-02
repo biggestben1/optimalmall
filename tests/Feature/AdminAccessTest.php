@@ -197,3 +197,25 @@ it('lets a super admin delete a customer or a seller', function () {
     expect(User::query()->whereKey($customer->id)->exists())->toBeFalse()
         ->and(User::query()->whereKey($seller->id)->exists())->toBeFalse();
 });
+
+it('lists health and wellness as a parent and on the seller product form', function () {
+    $admin = User::factory()->superAdmin()->create();
+    $seller = User::factory()->create(['role' => UserRole::Vendor]);
+    Vendor::factory()->create(['user_id' => $seller->id, 'status' => 'active']);
+
+    expect(Category::query()->where('slug', 'health-and-wellness')->whereNull('parent_id')->exists())->toBeTrue();
+
+    $this->actingAs($admin)
+        ->get(route('admin.categories.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Categories/Form')
+            ->where('parents', fn ($parents) => collect($parents)->contains(fn ($parent) => $parent['name'] === 'Health and wellness')));
+
+    $this->actingAs($seller)
+        ->get(route('vendor.products.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Vendor/Products/Form')
+            ->where('categories', fn ($categories) => collect($categories)->contains(fn ($category) => $category['name'] === 'Health and wellness')));
+});

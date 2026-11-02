@@ -83,7 +83,7 @@ class ProductController extends Controller
                 'is_best_seller' => false,
             ],
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
-            'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
+            'categories' => Category::query()->forProductForm()->get(['id', 'name']),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'statuses' => $this->statusOptions(),
         ]);
@@ -158,7 +158,7 @@ class ProductController extends Controller
                 'is_best_seller' => $product->is_best_seller,
             ],
             'vendors' => Vendor::query()->orderBy('name')->get(['id', 'name']),
-            'categories' => Category::query()->whereNotNull('parent_id')->orderBy('name')->get(['id', 'name']),
+            'categories' => Category::query()->forProductForm()->get(['id', 'name']),
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'statuses' => $this->statusOptions(),
         ]);
