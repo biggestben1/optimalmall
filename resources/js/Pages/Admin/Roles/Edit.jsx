@@ -52,7 +52,7 @@ export default function Edit({ staff, roles, can_delete }) {
                     <button type="submit" className="btn-primary" disabled={processing}>Save changes</button>
                     <Link href={route('admin.roles.index')} className="rounded-xl px-4 py-2 text-sm font-bold text-on-surface-variant">Cancel</Link>
                     {can_delete && (
-                        <DeleteButton href={route('admin.roles.destroy', staff.id)} confirmMessage={`Delete ${staff.name}? They will no longer be able to sign in.`} />
+                        <DeleteButton href={route('admin.roles.destroy', staff.id)} confirmMessage={`Delete ${staff.name}? Their login will be removed.`} />
                     )}
                 </div>
             </form>

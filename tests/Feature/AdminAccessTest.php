@@ -176,3 +176,24 @@ it('lets a super admin edit a staff password and delete that account', function 
 
     expect(User::query()->whereKey($admin->id)->exists())->toBeTrue();
 });
+
+it('lets a super admin delete a customer or a seller', function () {
+    $admin = User::factory()->superAdmin()->create();
+    $customer = User::factory()->create([
+        'role' => UserRole::Customer,
+    ]);
+    $seller = User::factory()->create([
+        'role' => UserRole::Vendor,
+    ]);
+
+    $this->actingAs($admin)
+        ->delete(route('admin.roles.destroy', $customer))
+        ->assertRedirect(route('admin.roles.index'));
+
+    $this->actingAs($admin)
+        ->delete(route('admin.roles.destroy', $seller))
+        ->assertRedirect(route('admin.roles.index'));
+
+    expect(User::query()->whereKey($customer->id)->exists())->toBeFalse()
+        ->and(User::query()->whereKey($seller->id)->exists())->toBeFalse();
+});

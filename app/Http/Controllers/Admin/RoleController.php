@@ -17,7 +17,7 @@ use Inertia\Response;
 
 class RoleController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(): Response
     {
         $users = User::query()
             ->orderBy('name')
@@ -29,8 +29,7 @@ class RoleController extends Controller
                 'email' => $user->email,
                 'role' => $user->role->value,
                 'role_label' => $user->role->label(),
-                'staff' => AdminAccess::isStaff($user),
-                'self' => $user->is($request->user()),
+                'can_delete' => $this->canDelete($user),
             ]);
 
         return Inertia::render('Admin/Roles/Index', [
@@ -113,10 +112,6 @@ class RoleController extends Controller
             return back()->with('error', 'You cannot delete the account you are signed in with.');
         }
 
-        if (! AdminAccess::isStaff($user)) {
-            return back()->with('error', 'Customers and sellers stay in their own lists. Only staff accounts can be deleted here.');
-        }
-
         if (! $this->canDelete($user)) {
             return back()->with('error', 'Keep at least one super admin.');
         }
@@ -127,12 +122,12 @@ class RoleController extends Controller
         ]);
         $user->delete();
 
-        return redirect()->route('admin.roles.index')->with('status', 'Staff account deleted.');
+        return redirect()->route('admin.roles.index')->with('status', 'Account deleted.');
     }
 
     private function canDelete(User $user): bool
     {
-        if ($user->is(auth()->user()) || ! AdminAccess::isStaff($user)) {
+        if ($user->is(auth()->user())) {
             return false;
         }
 

@@ -41,8 +41,8 @@ export default function Index({ users, roles, permissions = [], modules = {} }) 
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end gap-3">
                                                 <Link href={route('admin.roles.edit', user.id)} className="font-bold text-primary">Edit</Link>
-                                                {user.staff && !user.self && (
-                                                    <DeleteButton href={route('admin.roles.destroy', user.id)} confirmMessage={`Delete ${user.name}? They will no longer be able to sign in.`} />
+                                                {user.can_delete && (
+                                                    <DeleteButton href={route('admin.roles.destroy', user.id)} confirmMessage={`Delete ${user.name}? Their login will be removed.`} />
                                                 )}
                                             </div>
                                         </td>
