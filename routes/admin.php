@@ -58,7 +58,9 @@ Route::middleware(['auth', 'admin', 'admin.two_factor', 'throttle:120,1'])
             Route::middleware('admin.can:staff')->group(function () {
                 Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
                 Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
-                Route::patch('roles/{user}', [RoleController::class, 'update'])->name('roles.update');
+                Route::get('roles/{user}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+                Route::put('roles/{user}', [RoleController::class, 'update'])->name('roles.update');
+                Route::delete('roles/{user}', [RoleController::class, 'destroy'])->name('roles.destroy');
             });
 
             Route::middleware('admin.can:orders')->group(function () {

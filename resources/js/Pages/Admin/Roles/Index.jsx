@@ -1,26 +1,8 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import DeleteButton from '../../../Components/Admin/DeleteButton';
 import InputError from '../../../Components/Admin/InputError';
 import Pagination from '../../../Components/Admin/Pagination';
-
-function RoleForm({ user, roles }) {
-    const { data, setData, patch, processing } = useForm({ role: user.role });
-
-    return (
-        <form
-            onSubmit={(event) => {
-                event.preventDefault();
-                patch(route('admin.roles.update', user.id));
-            }}
-            className="flex items-center justify-end gap-2"
-        >
-            <select value={data.role} onChange={(e) => setData('role', e.target.value)} className="rounded-lg border-outline-variant text-sm">
-                {roles.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-            </select>
-            <button type="submit" className="font-bold text-primary" disabled={processing}>Save</button>
-        </form>
-    );
-}
 
 export default function Index({ users, roles, permissions = [], modules = {} }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -46,6 +28,7 @@ export default function Index({ users, roles, permissions = [], modules = {} }) 
                                 <tr>
                                     <th className="px-4 py-3">Name</th>
                                     <th className="px-4 py-3">Email</th>
+                                    <th className="px-4 py-3">Role</th>
                                     <th className="px-4 py-3" />
                                 </tr>
                             </thead>
@@ -54,8 +37,14 @@ export default function Index({ users, roles, permissions = [], modules = {} }) 
                                     <tr key={user.id}>
                                         <td className="px-4 py-3 font-semibold">{user.name}</td>
                                         <td className="px-4 py-3">{user.email}</td>
+                                        <td className="px-4 py-3">{user.role_label}</td>
                                         <td className="px-4 py-3">
-                                            <RoleForm user={user} roles={roles} />
+                                            <div className="flex items-center justify-end gap-3">
+                                                <Link href={route('admin.roles.edit', user.id)} className="font-bold text-primary">Edit</Link>
+                                                {user.staff && !user.self && (
+                                                    <DeleteButton href={route('admin.roles.destroy', user.id)} confirmMessage={`Delete ${user.name}? They will no longer be able to sign in.`} />
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

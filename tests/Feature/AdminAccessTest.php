@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -135,4 +136,43 @@ it('stores an uploaded image when an admin creates a product', function () {
     expect($product?->primaryImage)->not->toBeNull()
         ->and($product->primaryImage->path)->toStartWith('products/');
     Storage::disk('public')->assertExists($product->primaryImage->path);
+});
+
+it('lets a super admin edit a staff password and delete that account', function () {
+    $admin = User::factory()->superAdmin()->create();
+    $staff = User::factory()->create([
+        'name' => 'Floor Staff',
+        'email' => 'floor@optimalmall.test',
+        'role' => UserRole::CustomerSupport,
+        'password' => 'old-password',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.roles.update', $staff), [
+            'name' => 'Floor Lead',
+            'email' => 'lead@optimalmall.test',
+            'role' => UserRole::WarehouseStaff->value,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])
+        ->assertRedirect(route('admin.roles.index'));
+
+    $staff->refresh();
+    expect($staff->name)->toBe('Floor Lead')
+        ->and($staff->email)->toBe('lead@optimalmall.test')
+        ->and($staff->role)->toBe(UserRole::WarehouseStaff)
+        ->and(Hash::check('new-password', $staff->password))->toBeTrue();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.roles.destroy', $staff))
+        ->assertRedirect(route('admin.roles.index'));
+
+    expect(User::query()->whereKey($staff->id)->exists())->toBeFalse();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.roles.destroy', $admin))
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect(User::query()->whereKey($admin->id)->exists())->toBeTrue();
 });
