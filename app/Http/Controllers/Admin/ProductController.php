@@ -76,7 +76,7 @@ class ProductController extends Controller
                 'stock' => 0,
                 'sku' => '',
                 'brand_id' => null,
-                'status' => ProductStatus::Draft->value,
+                'status' => ProductStatus::Active->value,
                 'image_url' => '',
                 'is_featured' => false,
                 'is_trending' => false,

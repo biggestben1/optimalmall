@@ -212,7 +212,7 @@ class Portal
                 'compare_at_price' => $product?->compare_at_price ?? '',
                 'stock' => $product?->stock ?? 0,
                 'sku' => $product?->sku ?? '',
-                'status' => $product?->status->value ?? ProductStatus::Draft->value,
+                'status' => $product?->status->value ?? ProductStatus::Active->value,
                 'approval_label' => $product?->approval_status?->label(),
                 'image_url' => $remoteImages[0] ?? '',
                 'image_urls' => implode("\n", array_slice($remoteImages, 1)),

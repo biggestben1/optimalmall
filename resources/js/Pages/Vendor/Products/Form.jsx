@@ -16,7 +16,7 @@ export default function Form({ product, categories, statuses, approval_required 
         compare_at_price: product?.compare_at_price ?? '',
         stock: product?.stock ?? 0,
         sku: product?.sku ?? '',
-        status: product?.status ?? 'draft',
+        status: product?.status ?? 'active',
         image_url: product?.image_url ?? '',
         image_urls: product?.image_urls ?? '',
     });
